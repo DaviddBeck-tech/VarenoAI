@@ -38,6 +38,7 @@ import {
 // vercel({ imageService: true }), khiến /_image trả "500 Invalid endpoint" khi
 // chạy `astro dev`. Import tĩnh vẫn cho src đã băm + width/height thật.
 import chatvarenoShot from "../assets/app-mockup.png";
+import contentaiShot from "../assets/Layout_1.png";
 
 /**
  * Ảnh giao diện theo id sản phẩm. Cố ý KHÔNG nhét vào products.ts: registry là
@@ -49,6 +50,7 @@ import chatvarenoShot from "../assets/app-mockup.png";
  */
 const SHOTS: Record<string, ImageMetadata> = {
   chatvareno: chatvarenoShot,
+  contentai: contentaiShot,
 };
 
 interface Props {

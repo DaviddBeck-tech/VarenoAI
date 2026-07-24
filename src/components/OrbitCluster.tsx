@@ -337,6 +337,7 @@ export default function OrbitCluster({
             left: 0,
             top: 0,
             // Mascot dọc → thẻ hẹp hơn ảnh screenshot ngang cho khỏi quá to.
+            // Mascot dọc → thẻ hẹp hơn ảnh screenshot ngang cho khỏi quá to.
             width: floating
               ? "clamp(9rem, 15vw, 13rem)"
               : "clamp(16rem, 26vw, 22rem)",

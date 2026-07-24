@@ -19,18 +19,15 @@
 
 // Ảnh cho các thẻ trên bánh xe (và cho marquee ở mobile).
 import OrbitCluster from "./OrbitCluster.tsx";
-// Mascot Veno (bản -sm 760px: ảnh gốc ~1085px thu nhỏ + xoay sẽ răng cưa như bug
-// collage — xem memory). PNG nền TRONG SUỐT → OrbitCluster chạy chế độ floating
-// (bỏ khung thẻ) để nhân vật trôi tự do thay vì nằm trong hộp trắng.
-import mascot7 from "../assets/Veno-mascot-7-Photoroom-sm.png";
-import mascot2 from "../assets/Veno-mascot-2-Photoroom-sm.png";
-import mascot16 from "../assets/Veno-mascot-16-Photoroom-sm.png";
-import mascot4 from "../assets/Veno-mascot-4-Photoroom-sm.png";
-import mascot20 from "../assets/Veno-mascot-20-Photoroom-sm.png";
-import mascot5 from "../assets/Veno-mascot-5-Photoroom-sm.png";
-import mascot21 from "../assets/Veno-mascot-21-Photoroom-sm.png";
-import mascot6 from "../assets/Veno-mascot-6-Photoroom-sm.png";
-import mascot27 from "../assets/Veno-mascot-27-Photoroom-sm.png";
+// Mockup sản phẩm (1–4): nền trắng/đậm → giữ khung thẻ OrbitCluster (không floating).
+import shot1 from "../assets/1.png";
+import shot2 from "../assets/2.png";
+import shot3 from "../assets/3.png";
+import shot4 from "../assets/4.png";
+import shot5 from "../assets/1.jpg";
+import shot6 from "../assets/2.jpg";
+import shot7 from "../assets/3.jpg";
+import shot8 from "../assets/5.jpg";
 
 // CỐ Ý dùng <img> thay vì <Image> của astro:assets: astro.config.mjs bật
 // vercel({ imageService: true }), khiến /_image trả "500 Invalid endpoint" khi
@@ -60,22 +57,21 @@ const {
   btn1Link,
   btn2Text,
   btn2Link,
-  chips,
 } = Astro.props;
 
-// Mascot trên bánh xe. Nền trong suốt → KHÔNG dùng badge (chip ✓ nổi cạnh nhân
-// vật trông lạc lõng). Thứ tự trộn các tư thế để hai tư thế giống nhau không kề.
-// `chips` vẫn nhận từ page nhưng hero mascot không hiện nhãn nổi.
+// Giữ nguyên hình học OrbitCluster. Số thẻ trên chu vi quyết định mật độ trong
+// vùng nhìn (~30% path): 9 thẻ ≈ luôn ~3 ảnh hiện (cùng mật độ lúc còn mascot).
+// Không gắn badge/chip — chỉ hiện ảnh mockup.
 const wheelShots = [
-  { img: mascot7, alt: imageAlt, badge: "" },
-  { img: mascot2, alt: "", badge: "" },
-  { img: mascot16, alt: "", badge: "" },
-  { img: mascot4, alt: "", badge: "" },
-  { img: mascot20, alt: "", badge: "" },
-  { img: mascot5, alt: "", badge: "" },
-  { img: mascot21, alt: "", badge: "" },
-  { img: mascot6, alt: "", badge: "" },
-  { img: mascot27, alt: "", badge: "" },
+  { img: shot1, alt: imageAlt, badge: "" },
+  { img: shot2, alt: "", badge: "" },
+  { img: shot3, alt: "", badge: "" },
+  { img: shot4, alt: "", badge: "" },
+  { img: shot5, alt: "", badge: "" },
+  { img: shot6, alt: "", badge: "" },
+  { img: shot7, alt: "", badge: "" },
+  { img: shot8, alt: "", badge: "" },
+  { img: shot5, alt: "", badge: "" },
 ];
 
 // Props cho island React OrbitCluster: chỉ giá trị SERIALIZABLE (src/width/…),
@@ -173,7 +169,6 @@ const charSpans = (text: string) => {
         client:visible
         images={orbitImages}
         bottomAnchorSelector=".uhero-btn--ghost"
-        floating
       />
     </div>
 
@@ -445,12 +440,15 @@ const charSpans = (text: string) => {
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
   }
-  /* Mascot nền trong suốt → marquee cũng BỎ khung hộp cho nhân vật trôi tự do
-     (đồng bộ với OrbitCluster floating); hẹp lại vì mascot dọc. */
+  /* Mockup ngang → thẻ rộng hơn, có khung đồng bộ OrbitCluster. */
   .uhero-mq-card {
     flex: 0 0 auto;
-    width: 9rem;
-    filter: drop-shadow(0 12px 18px hsl(var(--primary) / 0.18));
+    width: 14rem;
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--border) / 0.8);
+    background: hsl(var(--card));
+    box-shadow: var(--elev-3);
+    overflow: hidden;
   }
   .uhero-mq-card img { display: block; width: 100%; height: auto; }
 
@@ -470,7 +468,7 @@ const charSpans = (text: string) => {
   @media (max-width: 520px) {
     .uhero-actions { flex-direction: column; width: 100%; }
     .uhero-btn { width: 100%; }
-    .uhero-mq-card { width: 8rem; }
+    .uhero-mq-card { width: 12rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
