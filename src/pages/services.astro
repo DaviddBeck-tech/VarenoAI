@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import PageHero from "../components/PageHero.astro";
+import ProductsGrid from "../components/ProductsGrid.astro";
+import ProductPricing from "../components/ProductPricing.astro";
+import CtaBand from "../components/CtaBand.astro";
+import { SITE } from "../config/site";
+import { navProducts } from "../config/products";
+import { SERVICES } from "../config/services";
+import { useTranslations, useTranslatedPath } from "../i18n/utils";
+
+// Trang tĩnh, không fetch WordPress → cache lâu hơn tại edge
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const lang = "vi" as const;
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+
+const seo = {
+  title: `Dịch vụ — ${SITE.brandName}`,
+  description:
+    "Hệ sinh thái sản phẩm AI của VarenoAI: ChatVareno cho tư vấn & bán hàng, ContentAI cho sản xuất nội dung. Xem bảng giá theo từng sản phẩm.",
+};
+
+const P = SERVICES.pricing;
+// Tra tiers theo id sản phẩm; sản phẩm coming-soon không có tiers ⇒ undefined.
+const tiersById = P.tiers as Record<string, any>;
+
+const pricingProducts = navProducts().map((p) => {
+  const raw = tiersById[p.id];
+  return {
+    id: p.id,
+    name: p.name,
+    icon: p.icon,
+    status: p.status,
+    tiers: raw
+      ? raw.map((ti: any) => ({
+          name: ti.name[lang],
+          price: ti.price[lang],
+          period: ti.period[lang],
+          desc: ti.desc[lang],
+          features: ti.features[lang].slice(),
+          highlighted: ti.highlighted ?? false,
+          ctaLabel: ti.ctaLabel[lang],
+          ctaHref: translatePath(ti.ctaHref),
+        }))
+      : null,
+  };
+});
+---
+
+<BaseLayout title={seo.title} description={seo.description}>
+  <Header />
+
+  <PageHero
+    badge="Dịch vụ"
+    title="Sản phẩm AI của"
+    titleHighlight=" VarenoAI"
+    subtitle="Mỗi sản phẩm giải quyết một bài toán cụ thể. Dùng riêng lẻ, hoặc kết hợp cùng nhau trên một nền tảng."
+  />
+
+  <ProductsGrid />
+
+  <ProductPricing
+    eyebrow={P.eyebrow[lang]}
+    heading={P.heading[lang]}
+    subheading={P.subheading[lang]}
+    note={P.note[lang]}
+    comingSoonBadge={t("products.comingSoon")}
+    comingSoonTitle={P.comingSoon.title[lang]}
+    comingSoonDesc={P.comingSoon.desc[lang]}
+    comingSoonCta={P.comingSoon.ctaLabel[lang]}
+    comingSoonHref={translatePath(P.comingSoon.ctaHref)}
+    popularLabel="Phổ biến"
+    products={pricingProducts}
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

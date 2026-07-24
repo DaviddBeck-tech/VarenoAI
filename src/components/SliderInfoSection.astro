@@ -1,0 +1,505 @@
+---
+import { getLangFromUrl } from "../i18n/utils";
+import { SITE } from "../config/site";
+
+interface Props {
+  sectionTitle?: string | null;
+  sectionTitleHighlight?: string | null;
+  sectionSubtitle?: string | null;
+  slides?:
+    | {
+        title: string;
+        description: string;
+        image?: string | null;
+      }[]
+    | null;
+}
+
+const lang = getLangFromUrl(Astro.url);
+const isEn = lang === "en";
+
+const {
+  sectionTitle,
+  sectionTitleHighlight,
+  sectionSubtitle,
+  slides: propsSlides,
+} = Astro.props;
+
+const defaultSlidesEn = [
+  {
+    title: "Connect all your data",
+    description:
+      "Data and integration tools that help you understand, act, and connect every aspect of your business.",
+    image: "/media/2026/04/Tra-Loi-Thong-Minh-Bang-AI-Agent-1.png",
+  },
+  {
+    title: "Automate real-time responses",
+    description:
+      "Automatically respond, suggest actions and update customer data in real time.",
+    image: "/media/2026/04/Tich-hop-Zalo-OA-Messenger-1.png",
+  },
+  {
+    title: "One platform for every team",
+    description:
+      "Advisory, sales and customer care — connecting seamlessly between AI and humans.",
+    image: "/media/2026/04/analytic.png",
+  },
+];
+
+const defaultSlidesVi = [
+  {
+    title: "Kết nối toàn bộ dữ liệu",
+    description:
+      "Dữ liệu và công cụ kết nối giúp bạn hiểu, hành động và kết nối mọi hoạt động kinh doanh.",
+    image: "/media/2026/04/Tra-Loi-Thong-Minh-Bang-AI-Agent-1.png",
+  },
+  {
+    title: "Tự động hoá theo thời gian thực",
+    description:
+      "Tự động trả lời, đề xuất hành động và cập nhật dữ liệu khách hàng theo thời gian thực.",
+    image: "/media/2026/04/Tich-hop-Zalo-OA-Messenger-1.png",
+  },
+  {
+    title: "Kết nối toàn bộ hệ thống",
+    description:
+      "Tích hợp Website, Zalo OA, Messenger, CRM, kho hàng và bảng tính chỉ trong vài phút.",
+    image: "/media/2026/04/analytic.png",
+  },
+];
+
+const slides =
+  propsSlides && propsSlides.length > 0
+    ? propsSlides
+    : isEn
+      ? defaultSlidesEn
+      : defaultSlidesVi;
+
+// Section header with fallbacks
+const displaySectionTitle =
+  sectionTitle || (isEn ? "AI Agent Platform by " : "Nền tảng AI Agent của ");
+const displaySectionTitleHighlight = sectionTitleHighlight || `${SITE.brandName}.`;
+const displaySectionSubtitle =
+  sectionSubtitle ||
+  (isEn
+    ? "Data and integration tools that help you understand, act, and connect every aspect of your business."
+    : "Dữ liệu và công cụ kết nối giúp bạn hiểu, hành động và kết nối mọi hoạt động kinh doanh.");
+
+const totalSlides = slides.length;
+---
+
+<section class="slider-info">
+  <div class="slider-info-container">
+    <!-- Header -->
+    <div class="si-header">
+      <h2 class="si-section-title">
+        {displaySectionTitle}
+        <span class="si-title-highlight">{displaySectionTitleHighlight}</span>
+      </h2>
+      <p class="si-section-subtitle">
+        {displaySectionSubtitle}
+      </p>
+    </div>
+
+    <!-- Body Layout -->
+    <div class="si-body">
+      <!-- Left Column (Text Content) -->
+      <div class="si-content-col">
+        <!-- Counter -->
+        <div class="si-counter">
+          <span class="si-current" id="si-current">01</span>
+          <span class="si-sep"> / </span>
+          <span class="si-total">{String(totalSlides).padStart(2, "0")}</span>
+        </div>
+
+        <!-- Slides -->
+        <div class="si-slides" id="si-slides">
+          {
+            slides.map((slide, i) => (
+              <div class={`si-slide${i === 0 ? " active" : ""}`} data-index={i}>
+                <h3 class="si-slide-title">{slide.title}</h3>
+                <p class="si-slide-desc">{slide.description}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- Right Column (Images) -->
+      <div class="si-image-col">
+        <div class="si-images-container">
+          <div class="si-image-glow" aria-hidden="true"></div>
+          {
+            slides.map((slide, i) => (
+              <div
+                class={`si-image-wrapper${i === 0 ? " active" : ""}`}
+                data-img-index={i}
+              >
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  class="si-slide-img"
+                  width="600"
+                  height="500"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Controls (Arrows + Dots in the middle) -->
+    <div class="si-controls">
+      <button class="si-arrow-btn" id="si-prev" aria-label="Previous slide">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
+
+      <div class="si-dots" id="si-dots">
+        {
+          slides.map((_, i) => (
+            <button
+              class={`si-dot${i === 0 ? " active" : ""}`}
+              data-dot={i}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))
+        }
+      </div>
+
+      <button class="si-arrow-btn" id="si-next" aria-label="Next slide">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 18l6-6-6-6"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ totalSlides }}>
+  (function () {
+    let current = 0;
+    const slides = document.querySelectorAll(".si-slide");
+    const imgWrappers = document.querySelectorAll(".si-image-wrapper");
+    const dots = document.querySelectorAll(".si-dot");
+    const counter = document.getElementById("si-current");
+    let timer;
+
+    function goTo(idx) {
+      slides.forEach((s) => s.classList.remove("active"));
+      imgWrappers.forEach((w) => w.classList.remove("active"));
+      dots.forEach((d) => d.classList.remove("active"));
+
+      current = (idx + totalSlides) % totalSlides;
+
+      slides[current].classList.add("active");
+      imgWrappers[current].classList.add("active");
+      dots[current].classList.add("active");
+
+      if (counter) counter.textContent = String(current + 1).padStart(2, "0");
+    }
+
+    function startAuto() {
+      clearInterval(timer);
+      timer = setInterval(() => goTo(current + 1), 6000);
+    }
+
+    document.getElementById("si-prev")?.addEventListener("click", () => {
+      goTo(current - 1);
+      startAuto();
+    });
+    document.getElementById("si-next")?.addEventListener("click", () => {
+      goTo(current + 1);
+      startAuto();
+    });
+    dots.forEach((d) =>
+      d.addEventListener("click", () => {
+        goTo(parseInt(d.dataset.dot, 10));
+        startAuto();
+      }),
+    );
+
+    goTo(0);
+    startAuto();
+  })();
+</script>
+
+<style>
+  .slider-info {
+    padding: 6rem 0;
+    background: hsl(var(--background));
+    overflow: hidden;
+  }
+
+  .slider-info-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* Header */
+  .si-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .si-section-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .si-title-highlight {
+    color: hsl(var(--primary));
+  }
+
+  .si-section-subtitle {
+    font-family: "Roboto", sans-serif;
+    font-size: clamp(0.9375rem, 1.5vw, 1.125rem);
+    color: hsl(var(--muted-foreground));
+    line-height: 1.6;
+  }
+
+  /* Body Layout */
+  .si-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 992px) {
+    .si-body {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 4rem;
+    }
+  }
+
+  /* Left Column */
+  .si-content-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
+  .si-counter {
+    font-family: "JetBrains Mono", "Roboto Mono", monospace;
+    font-size: 0.9375rem;
+    color: hsl(var(--muted-foreground));
+    letter-spacing: 0.05em;
+  }
+
+  .si-current {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: hsl(var(--primary));
+  }
+
+  .si-sep {
+    margin: 0 0.25rem;
+  }
+
+  /* Slides (Grid Stack) */
+  .si-slides {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    width: 100%;
+  }
+
+  .si-slide {
+    grid-area: 1 / 1 / 2 / 2;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease,
+      visibility 0.5s ease;
+    pointer-events: none;
+    width: 100%;
+  }
+
+  .si-slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .si-slide-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .si-slide-desc {
+    font-family: "Roboto", sans-serif;
+    font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+    color: hsl(var(--muted-foreground));
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* Right Column (Images Stack) */
+  .si-image-col {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  .si-images-container {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+    /* Fixed frame: every slide image renders at the same size */
+    aspect-ratio: 6 / 5;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+
+  .si-image-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 1.5rem;
+    background: radial-gradient(
+      circle at 30% 30%,
+      hsl(var(--primary) / 0.18),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+
+  .si-image-wrapper {
+    grid-area: 1 / 1 / 2 / 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.96);
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease,
+      visibility 0.5s ease;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .si-image-wrapper.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  .si-slide-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Navigation Controls */
+  .si-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.75rem;
+    margin-top: 1rem;
+  }
+
+  .si-arrow-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid hsl(var(--border));
+    background: transparent;
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .si-arrow-btn:hover {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
+    transform: scale(1.05);
+  }
+
+  .si-arrow-btn:active {
+    transform: scale(0.95);
+  }
+
+  .si-dots {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+  }
+
+  .si-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    background: hsl(var(--foreground) / 0.18);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .si-dot.active {
+    width: 24px;
+    border-radius: 4px;
+    background: hsl(var(--primary));
+  }
+
+  @media (max-width: 768px) {
+    .slider-info {
+      padding: 3rem 0;
+    }
+  }
+</style>

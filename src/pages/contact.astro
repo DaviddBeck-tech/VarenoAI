@@ -1,0 +1,983 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { getContactPageData } from "../lib/wordpress";
+import { SITE } from "../config/site";
+
+// Bật Vercel cache HTML
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=60, stale-while-revalidate=86400",
+);
+
+// ── Fetch từ WordPress (có fallback an toàn) ─────────────────
+const wpData = await getContactPageData();
+
+// ── Fallback defaults (dùng khi WP chưa có data / chưa setup ACF) ──
+const content = {
+  heroBadge: wpData?.heroBadge ?? "✦ Liên hệ với chúng tôi",
+  heroTitle: wpData?.heroTitle ?? "Chúng tôi luôn ở đây để lắng nghe bạn",
+  heroSubtitle:
+    wpData?.heroSubtitle ??
+    `Đội ngũ ${SITE.brandName} phản hồi mọi yêu cầu trong vòng 24 giờ. Hãy cho chúng tôi biết bạn cần gì.`,
+  contactStatusText:
+    wpData?.contactStatusText ?? "Đang hoạt động — Phản hồi trong 24h",
+  contactBranchAddress:
+    wpData?.contactBranchAddress ??
+    "566/94/2 Nguyễn Thái Sơn, P. An Nhơn, TP. Hồ Chí Minh",
+  contactAddress:
+    wpData?.contactAddress ??
+    "P17, Đường Tôn Đức Thắng, KDT EcoCity Premia, P. Tân An, Tỉnh Đắk Lắk.",
+  contactPhone: wpData?.contactPhone ?? "0902401079 – 0909967939",
+  contactEmail: wpData?.contactEmail ?? SITE.contactEmail,
+  contactFacebookUrl: wpData?.contactFacebookUrl ?? "#",
+  contactYoutubeUrl: wpData?.contactYoutubeUrl ?? "#",
+  contactTiktokUrl: wpData?.contactTiktokUrl ?? "#",
+  contactLinkedinUrl: wpData?.contactLinkedinUrl ?? "#",
+  subjects: wpData?.subjects?.map((s) => s.subjectName) ?? [
+    "Hỗ trợ kỹ thuật",
+    "Tư vấn mua hàng",
+    "Hợp tác kinh doanh",
+    "Khác",
+  ],
+  stat1Number: wpData?.stat1Number ?? 10,
+  stat1Suffix: wpData?.stat1Suffix ?? "K+",
+  stat1Label: wpData?.stat1Label ?? "Khách hàng tin tưởng",
+  stat2Number: wpData?.stat2Number ?? 98,
+  stat2Suffix: wpData?.stat2Suffix ?? "%",
+  stat2Label: wpData?.stat2Label ?? "Tỉ lệ hài lòng",
+  stat3Prefix: wpData?.stat3Prefix ?? "<",
+  stat3Number: wpData?.stat3Number ?? 2,
+  stat3Suffix: wpData?.stat3Suffix ?? "h",
+  stat3Label: wpData?.stat3Label ?? "Thời gian phản hồi",
+};
+
+const seoData = {
+  title: `Liên hệ - ${SITE.brandName}`,
+  description: content.heroSubtitle,
+};
+---
+
+<BaseLayout
+  title={seoData.title}
+  description={seoData.description}
+  seo={seoData}
+>
+  <Header />
+
+  <div
+    class="relative min-h-screen overflow-hidden bg-background text-foreground transition-colors duration-300"
+  >
+    <!-- Animated background -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div
+        class="animate-blob absolute -top-20 -left-20 w-[600px] h-[600px] rounded-full"
+        style="background: hsl(var(--primary) / 0.15); filter: blur(120px);"
+      >
+      </div>
+      <div
+        class="animate-blob-delay-2 absolute -top-10 -right-20 w-[500px] h-[500px] rounded-full"
+        style="background: hsl(var(--primary) / 0.1); filter: blur(100px);"
+      >
+      </div>
+      <div
+        class="animate-blob-delay-4 absolute -bottom-20 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full"
+        style="background: hsl(var(--accent) / 0.1); filter: blur(80px);"
+      >
+      </div>
+      <div class="dot-grid absolute inset-0"></div>
+    </div>
+
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-32 pb-16">
+      <!-- Hero -->
+      <section class="pb-12 md:pb-16 text-center">
+        <div
+          id="wp-hero-badge"
+          class="animate-fade-in-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8 border border-primary/30 text-primary"
+          style="animation-delay: 0ms;"
+        >
+          {content.heroBadge}
+        </div>
+        <h1
+          id="wp-hero-title"
+          class="animate-fade-in-up font-bold mb-6 text-foreground"
+          style="font-display, animation-delay: 150ms; font-size: clamp(1.875rem, 5vw, 3.5rem); line-height: 1.15;"
+        >
+          {content.heroTitle}
+        </h1>
+        <p
+          id="wp-hero-subtitle"
+          class="animate-fade-in-up max-w-lg mx-auto text-base md:text-lg text-muted-foreground"
+          style="font-body, animation-delay: 300ms;"
+        >
+          {content.heroSubtitle}
+        </p>
+      </section>
+
+      <!-- Main Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <!-- Left Card -->
+        <div
+          class="bg-card/40 backdrop-blur-xl border border-border rounded-3xl p-6 md:p-10 shadow-xl flex flex-col animate-fade-in-up transition-colors duration-300"
+          style="animation-delay: 200ms;"
+        >
+          <div class="flex items-center gap-2 mb-8">
+            <span class="relative flex h-3 w-3">
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+              ></span>
+              <span
+                class="relative inline-flex rounded-full h-3 w-3 bg-green-500"
+              ></span>
+            </span>
+            <span id="wp-contact-status" class="text-sm text-muted-foreground"
+              >{content.contactStatusText}</span
+            >
+          </div>
+
+          <h2
+            class="font-body text-2xl md:text-[28px] font-bold mb-3 text-foreground"
+          >
+            Thông tin liên lạc
+          </h2>
+          <p class="text-sm mb-10 text-muted-foreground">
+            {SITE.brandName} không ngừng nỗ lực mang lại trải nghiệm tốt nhất cho bạn.
+          </p>
+
+          <div class="space-y-7">
+            <!-- ĐỊA CHỈ -->
+            <div class="flex items-start gap-4">
+              <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-primary-foreground transition-all"
+                style="box-shadow: 0 8px 30px -5px hsl(var(--primary) / 0.4);"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  ><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
+                  ></path><circle cx="12" cy="10" r="3"></circle></svg
+                >
+              </div>
+              <div>
+                <p
+                  class="text-[11px] tracking-widest mb-1 uppercase text-muted-foreground font-bold"
+                >
+                  Địa chỉ TP.HCM
+                </p>
+                <p
+                  id="wp-contact-branch-address"
+                  class="font-body text-[15px] font-bold text-foreground"
+                >
+                  {content.contactBranchAddress}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-primary-foreground transition-all"
+                style="box-shadow: 0 8px 30px -5px hsl(var(--primary) / 0.4);"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  ><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
+                  ></path><circle cx="12" cy="10" r="3"></circle></svg
+                >
+              </div>
+              <div>
+                <p
+                  class="text-[11px] tracking-widest mb-1 uppercase text-muted-foreground font-bold"
+                >
+                  Địa chỉ BMT
+                </p>
+                <p
+                  id="wp-contact-address"
+                  class="font-body text-[15px] font-bold text-foreground"
+                >
+                  {content.contactAddress}
+                </p>
+              </div>
+            </div>
+
+            <!-- ĐIỆN THOẠI -->
+            <div class="flex items-start gap-4">
+              <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-primary-foreground transition-all"
+                style="box-shadow: 0 8px 30px -5px hsl(var(--primary) / 0.4);"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  ><path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                  ></path></svg
+                >
+              </div>
+              <div>
+                <p
+                  class="text-[11px] tracking-widest mb-1 uppercase text-muted-foreground font-bold"
+                >
+                  Điện thoại
+                </p>
+                <p
+                  id="wp-contact-phone"
+                  class="font-body text-[15px] font-bold text-foreground"
+                >
+                  {content.contactPhone}
+                </p>
+              </div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="flex items-start gap-4">
+              <div
+                class="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center bg-primary text-primary-foreground transition-all"
+                style="box-shadow: 0 8px 30px -5px hsl(var(--primary) / 0.4);"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  ><rect width="20" height="16" x="2" y="4" rx="2"></rect><path
+                    d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg
+                >
+              </div>
+              <div>
+                <p
+                  class="text-[11px] tracking-widest mb-1 uppercase text-muted-foreground font-bold"
+                >
+                  Email
+                </p>
+                <p
+                  id="wp-contact-email"
+                  class="font-body text-[15px] font-bold text-foreground"
+                >
+                  {content.contactEmail}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="my-8 border-t border-border transition-colors"></div>
+
+          <div class="flex gap-3">
+            <a
+              href={content.contactFacebookUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 border border-border bg-transparent text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-transparent hover:shadow-[0_8px_30px_-5px_hsl(var(--primary)/0.4)] group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path
+                  d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"
+                ></path></svg
+              >
+            </a>
+            <a
+              href={content.contactYoutubeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="YouTube"
+              class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 border border-border bg-transparent text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-transparent hover:shadow-[0_8px_30px_-5px_hsl(var(--primary)/0.4)] group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                ></path>
+              </svg>
+            </a>
+            <a
+              href={content.contactTiktokUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+              class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 border border-border bg-transparent text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-transparent hover:shadow-[0_8px_30px_-5px_hsl(var(--primary)/0.4)] group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"
+                ></path>
+              </svg>
+            </a>
+            <a
+              href={content.contactLinkedinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              class="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 border border-border bg-transparent text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-transparent hover:shadow-[0_8px_30px_-5px_hsl(var(--primary)/0.4)] group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><path
+                  d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                ></path><rect width="4" height="12" x="2" y="9"></rect><circle
+                  cx="4"
+                  cy="4"
+                  r="2"></circle></svg
+              >
+            </a>
+          </div>
+
+          <div class="mt-auto pt-8">
+            <div
+              class="h-px w-full"
+              style="background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent))); opacity: 0.3;"
+            >
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Card (Forms) -->
+        <div
+          class="bg-card/40 backdrop-blur-xl border border-border rounded-3xl p-6 md:p-10 shadow-xl animate-fade-in-up transition-colors duration-300"
+          style="animation-delay: 400ms;"
+        >
+          <!-- Success View (Hidden by default) -->
+          <div
+            id="success-view"
+            class="hidden flex flex-col items-center justify-center h-full gap-4 py-20 animate-fade-in-up"
+          >
+            <div
+              class="w-16 h-16 rounded-full flex items-center justify-center bg-primary text-primary-foreground"
+              style="box-shadow: 0 8px 30px -5px hsl(var(--primary) / 0.4);"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                ><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"
+                ></path></svg
+              >
+            </div>
+            <h3
+              class="text-xl font-bold text-foreground"
+              style="font-family: 'Sora', sans-serif;"
+            >
+              Đã gửi thành công!
+            </h3>
+            <p class="text-center text-sm text-muted-foreground">
+              Cám ơn bạn đã liên hệ. Chúng tôi đã nhận được thông tin và sẽ phản
+              hồi sớm nhất.
+            </p>
+            <button
+              type="button"
+              id="new-request-btn"
+              class="mt-4 px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 border border-primary text-primary hover:bg-primary/10"
+            >
+              Gửi một yêu cầu khác
+            </button>
+          </div>
+
+          <!-- Form View -->
+          <div id="form-view">
+            <span class="gradient-text text-sm font-medium mb-2 block"
+              >Gửi tin nhắn</span
+            >
+            <h2
+              class="font-body text-xl md:text-[26px] font-bold mb-8 text-foreground"
+            >
+              Chúng tôi sẽ phản hồi sớm nhất
+            </h2>
+
+            <!-- Web3Forms Action form -->
+            <form id="contact-form" class="space-y-5">
+              <!-- WEB3FORMS ACCESS KEY (REPLACE THIS WITH YOUR KEY) -->
+              <input
+                type="hidden"
+                name="access_key"
+                value="62d92ea0-8191-4d88-be6c-5151cb1a09a9"
+              />
+
+              <!-- Cấu hình email subject gửi về cho bạn -->
+              <input
+                type="hidden"
+                name="subject"
+                value={`[${SITE.brandName} VI] Yêu cầu liên hệ mới mới từ khách hàng`}
+              />
+              <!-- Chống lấy email spam giả hệ thống -->
+              <input
+                type="checkbox"
+                name="botcheck"
+                class="hidden"
+                style="display: none;"
+              />
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    for="firstName"
+                    class="block text-xs font-medium mb-1.5 text-muted-foreground"
+                    >Họ và tên lót</label
+                  >
+                  <input
+                    id="firstName"
+                    name="Họ và tên lót"
+                    type="text"
+                    required
+                    placeholder="Nguyễn Văn"
+                    class="w-full rounded-lg px-4 py-2 text-sm outline-none transition-colors border border-input bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                    style="font-family: 'DM Sans';"
+                  />
+                </div>
+                <div>
+                  <label
+                    for="lastName"
+                    class="block text-xs font-medium mb-1.5 text-muted-foreground"
+                    >Tên của bạn</label
+                  >
+                  <input
+                    id="lastName"
+                    name="Tên"
+                    type="text"
+                    required
+                    placeholder="An"
+                    class="w-full rounded-lg px-4 py-2 text-sm outline-none transition-colors border border-input bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                    style="font-family: 'DM Sans';"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  for="email"
+                  class="block text-xs font-medium mb-1.5 text-muted-foreground"
+                  >Địa chỉ Email</label
+                >
+                <input
+                  id="email"
+                  name="Email"
+                  type="email"
+                  required
+                  placeholder="email@example.com"
+                  class="w-full rounded-lg px-4 py-2 text-sm outline-none transition-colors border border-input bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                  style="font-family: 'DM Sans';"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="phone"
+                  class="block text-xs font-medium mb-1.5 text-muted-foreground"
+                  >Số điện thoại</label
+                >
+                <input
+                  id="phone"
+                  name="Số điện thoại"
+                  type="tel"
+                  placeholder="+84 123 456 789"
+                  class="w-full rounded-lg px-4 py-2 text-sm outline-none transition-colors border border-input bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                  style="font-family: 'DM Sans';"
+                />
+              </div>
+
+              <div class="relative">
+                <label
+                  class="block text-xs font-medium mb-1.5 text-muted-foreground"
+                  >Chủ đề quan tâm</label
+                >
+                <input
+                  type="hidden"
+                  id="subject-input"
+                  name="Chủ đề quan tâm"
+                  value=""
+                />
+                <button
+                  type="button"
+                  id="select-btn"
+                  class="w-full rounded-lg px-4 py-2 text-sm text-left flex items-center justify-between outline-none transition-colors border border-input bg-background/50 text-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                  style="font-family: 'DM Sans';"
+                >
+                  <span id="subject-value">Chọn chủ đề</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg
+                  >
+                </button>
+
+                <div
+                  id="select-menu"
+                  class="hidden absolute z-20 mt-1 w-full rounded-xl overflow-hidden shadow-xl bg-popover border border-border"
+                >
+                  {
+                    content.subjects.map((s) => (
+                      <button
+                        type="button"
+                        data-value={s}
+                        class="select-option w-full text-llg px-4 py-2 text-sm transition-colors duration-200 text-popover-foreground hover:bg-primary/10 hover:text-primary"
+                        style="font-family: 'DM Sans';"
+                      >
+                        {s}
+                      </button>
+                    ))
+                  }
+                </div>
+              </div>
+
+              <div>
+                <label
+                  for="message"
+                  class="block text-xs font-medium mb-1.5 text-muted-foreground"
+                  >Nội dung chi tiết</label
+                >
+                <textarea
+                  id="message"
+                  name="Nội dung"
+                  rows="5"
+                  required
+                  placeholder="Mô tả yêu cầu của bạn..."
+                  class="w-full rounded-lg px-4 py-2 text-sm resize-none outline-none transition-colors border border-input bg-background/50 text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+                  style="font-family: 'DM Sans';"></textarea>
+              </div>
+
+              <button
+                type="submit"
+                id="submit-btn"
+                class="w-full h-14 flex items-center justify-center btn-hero"
+              >
+                <span>Gửi yêu cầu ngay</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="ml-2 transition-transform duration-300 group-hover:translate-x-1"
+                  ><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"
+                  ></path></svg
+                >
+              </button>
+
+              <p class="text-center text-xs text-muted-foreground">
+                Bằng cách gửi, bạn đồng ý với Chính sách bảo mật của chúng tôi.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Block -->
+      <div
+        id="stats-container"
+        class="mt-16 md:mt-20 max-w-4xl mx-auto animate-fade-in-up"
+        style="animation-delay: 600ms;"
+      >
+        <div
+          class="bg-card/40 backdrop-blur-xl border border-border rounded-3xl px-6 md:px-12 py-8 flex flex-col md:flex-row items-center justify-around gap-6 md:gap-0 transition-colors duration-300"
+        >
+          <div class="text-center">
+            <p
+              class="gradient-text text-4xl md:text-5xl font-extrabold"
+              style="font-family: 'Sora', sans-serif;"
+            >
+              <span class="stat-number" data-end={content.stat1Number}>0</span>{
+                content.stat1Suffix
+              }
+            </p>
+            <p class="text-sm mt-1 text-muted-foreground">
+              {content.stat1Label}
+            </p>
+          </div>
+
+          <div
+            class="hidden md:block w-px h-12 border-l border-border transition-colors"
+          >
+          </div>
+
+          <div class="text-center">
+            <p
+              class="gradient-text text-4xl md:text-5xl font-extrabold"
+              style="font-family: 'Sora', sans-serif;"
+            >
+              <span class="stat-number" data-end={content.stat2Number}>0</span>{
+                content.stat2Suffix
+              }
+            </p>
+            <p class="text-sm mt-1 text-muted-foreground">
+              {content.stat2Label}
+            </p>
+          </div>
+
+          <div
+            class="hidden md:block w-px h-12 border-l border-border transition-colors"
+          >
+          </div>
+
+          <div class="text-center">
+            <p
+              class="gradient-text text-4xl md:text-5xl font-extrabold"
+              style="font-family: 'Sora', sans-serif;"
+            >
+              {content.stat3Prefix}<span
+                class="stat-number"
+                data-end={content.stat3Number}>0</span
+              >{content.stat3Suffix}
+            </p>
+            <p class="text-sm mt-1 text-muted-foreground">
+              {content.stat3Label}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  // 1. Logic Form Submit (Web3Forms)
+  const form = document.getElementById("contact-form") as HTMLFormElement;
+  const formView = document.getElementById("form-view");
+  const successView = document.getElementById("success-view");
+  const newRequestBtn = document.getElementById(
+    "new-request-btn",
+  ) as HTMLButtonElement;
+  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
+
+  if (form && formView && successView && submitBtn) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const originalBtnHTML = submitBtn.innerHTML;
+      submitBtn.innerHTML =
+        '<span>Processing...</span><svg class="animate-spin h-5 w-5 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = "0.7";
+      submitBtn.style.cursor = "not-allowed";
+
+      const formData = new FormData(form);
+
+      try {
+        const fetchUrl = "https://" + "api.web" + "3forms.com/" + "submit";
+        const response = await fetch(fetchUrl, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await response.json();
+        if (data.success) {
+          formView.classList.add("hidden");
+          successView.classList.remove("hidden");
+        } else {
+          alert(
+            "Server warning: " +
+              data.message +
+              "\n\n💡 Hint: Have you entered your Web3Forms Access Key?",
+          );
+        }
+      } catch (error) {
+        alert(
+          "Unable to connect to the email system. Please check your internet connection!",
+        );
+      } finally {
+        submitBtn.innerHTML = originalBtnHTML;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = "1";
+        submitBtn.style.cursor = "pointer";
+      }
+    });
+  }
+
+  if (newRequestBtn && form) {
+    newRequestBtn.addEventListener("click", () => {
+      form.reset();
+      const subjectValue = document.getElementById("subject-value");
+      const subjectInput = document.getElementById(
+        "subject-input",
+      ) as HTMLInputElement;
+      if (subjectValue && subjectInput) {
+        subjectValue.textContent = "Choose a subject";
+        subjectValue.classList.remove("text-foreground");
+        subjectValue.classList.add("text-muted-foreground");
+        subjectInput.value = "";
+      }
+      if (successView) successView.classList.add("hidden");
+      if (formView) formView.classList.remove("hidden");
+    });
+  }
+
+  // 2. Custom Select Dropdown
+  const selectBtn = document.getElementById("select-btn");
+  const selectMenu = document.getElementById("select-menu");
+  const subjectValue = document.getElementById("subject-value");
+  const subjectInput = document.getElementById(
+    "subject-input",
+  ) as HTMLInputElement;
+
+  if (selectBtn && selectMenu) {
+    selectBtn.addEventListener("click", () => {
+      selectMenu.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        !selectBtn.contains(e.target as Node) &&
+        !selectMenu.contains(e.target as Node)
+      ) {
+        selectMenu.classList.add("hidden");
+      }
+    });
+
+    const options = selectMenu.querySelectorAll(".select-option");
+    options.forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const val = opt.getAttribute("data-value");
+        if (val && subjectValue && subjectInput) {
+          subjectValue.textContent = val;
+          subjectValue.classList.remove("text-muted-foreground");
+          subjectValue.classList.add("text-foreground");
+          subjectInput.value = val;
+        }
+        selectMenu.classList.add("hidden");
+      });
+    });
+  }
+
+  // 3. Stats Observer for Animation
+  const statsContainer = document.getElementById("stats-container");
+  let hasAnimated = false;
+
+  const animateValue = (el: HTMLElement, end: number, duration: number) => {
+    const startTime = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(eased * end);
+      el.textContent = current.toString();
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = end.toString();
+      }
+    };
+    requestAnimationFrame(step);
+  };
+
+  if (statsContainer && window.IntersectionObserver) {
+    const runStats = () => {
+      if (hasAnimated) return;
+      hasAnimated = true;
+      document.querySelectorAll(".stat-number").forEach((stat) => {
+        const end = parseInt(stat.getAttribute("data-end") || "0", 10);
+        animateValue(stat, end, 1500);
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          runStats();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(statsContainer);
+  }
+</script>
+
+<script
+  is:inline
+  define:vars={{
+    WP_GRAPHQL_URL: SITE.graphqlUrl,
+  }}
+>
+  // ── WordPress Live Content Polling ─────────────────────────
+  // Tự động fetch data mới từ WordPress mỗi 15 giây và cập nhật
+  // UI ngay lập tức mà không cần người dùng F5 trang
+  (function () {
+    const WP_GRAPHQL = WP_GRAPHQL_URL;
+    const POLL_MS = 5000; // 5 giây
+
+    const GQL = `query {
+      page(id: "lien-he", idType: URI) {
+        contactPageFields {
+          heroBadge heroTitle heroSubtitle contactStatusText
+          contactBranchAddress contactAddress contactPhone contactEmail
+          contactFacebookUrl contactYoutubeUrl contactTiktokUrl contactLinkedinUrl
+        }
+      }
+    }`;
+
+    const GQL_FALLBACK = `query {
+      page(id: "contact", idType: URI) {
+        contactPageFields {
+          heroBadge heroTitle heroSubtitle contactStatusText
+          contactBranchAddress contactAddress contactPhone contactEmail
+          contactFacebookUrl contactYoutubeUrl contactTiktokUrl contactLinkedinUrl
+        }
+      }
+    }`;
+
+    async function fetchData() {
+      try {
+        const r = await fetch(WP_GRAPHQL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({ query: GQL }),
+        });
+        const j = await r.json();
+        const f = j?.data?.page?.contactPageFields;
+        if (f) return f;
+
+        // Fallback slug tiếng Việt
+        const r2 = await fetch(WP_GRAPHQL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({ query: GQL_FALLBACK }),
+        });
+        const j2 = await r2.json();
+        return j2?.data?.page?.contactPageFields ?? null;
+      } catch {
+        return null;
+      }
+    }
+
+    function setText(id, value) {
+      if (!value) return;
+      const el = document.getElementById(id);
+      if (el && el.textContent.trim() !== String(value).trim()) {
+        el.textContent = value;
+      }
+    }
+
+    function setHref(ariaLabel, value) {
+      if (!value) return;
+      const el = document.querySelector(`a[aria-label="${ariaLabel}"]`);
+      if (el && el.getAttribute("href") !== value) {
+        el.setAttribute("href", value);
+      }
+    }
+
+    async function poll() {
+      const d = await fetchData();
+      if (!d) return;
+      setText("wp-hero-badge", d.heroBadge);
+      setText("wp-hero-title", d.heroTitle);
+      setText("wp-hero-subtitle", d.heroSubtitle);
+      setText("wp-contact-status", d.contactStatusText);
+      setText("wp-contact-branch-address", d.contactBranchAddress);
+      setText("wp-contact-address", d.contactAddress);
+      setText("wp-contact-phone", d.contactPhone);
+      setText("wp-contact-email", d.contactEmail);
+      setHref("Facebook", d.contactFacebookUrl);
+      setHref("YouTube", d.contactYoutubeUrl);
+      setHref("TikTok", d.contactTiktokUrl);
+      setHref("LinkedIn", d.contactLinkedinUrl);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setInterval(poll, POLL_MS);
+    });
+  })();
+</script>
+
+<style>
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  .animate-blob-delay-2 {
+    animation: blob 7s infinite;
+    animation-delay: 2s;
+  }
+  .animate-blob-delay-4 {
+    animation: blob 7s infinite;
+    animation-delay: 4s;
+  }
+  .dot-grid {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.05) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+</style>

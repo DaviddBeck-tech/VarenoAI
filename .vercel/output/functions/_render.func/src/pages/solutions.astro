@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import PageHero from "../components/PageHero.astro";
+import FeaturesSection from "../components/FeaturesSection.astro";
+import CtaBand from "../components/CtaBand.astro";
+import { SITE } from "../config/site";
+import { NAV } from "../config/nav";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const seo = {
+  title: `Giải pháp — ${SITE.brandName}`,
+  description:
+    "Giải pháp AI theo từng ngành nghề và bài toán kinh doanh cụ thể.",
+};
+
+// NỘI DUNG TẠM — thay bằng giải pháp thật của bạn.
+// image: null ⇒ FeaturesSection dùng icon dựng sẵn theo chỉ số, không rò rỉ ảnh.
+const solutions = [
+  {
+    title: "Bán lẻ & Thương mại điện tử",
+    description:
+      "Tư vấn sản phẩm, kiểm tra tồn kho và chốt đơn ngay trong hội thoại.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Giáo dục & Đào tạo",
+    description:
+      "Trả lời câu hỏi tuyển sinh, hướng dẫn học viên và thu thập thông tin đăng ký.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Bất động sản",
+    description:
+      "Sàng lọc khách tiềm năng, gửi thông tin dự án và đặt lịch xem nhà tự động.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Dịch vụ & Chăm sóc khách hàng",
+    description:
+      "Giảm tải cho tổng đài bằng cách tự động xử lý các câu hỏi lặp lại.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Marketing & Nội dung",
+    description:
+      "Sản xuất bài viết, mô tả sản phẩm và nội dung mạng xã hội ở quy mô lớn.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Doanh nghiệp nhiều chi nhánh",
+    description:
+      "Quản lý tập trung, phân quyền theo chi nhánh và báo cáo hợp nhất.",
+    image: null,
+    link: NAV.contact,
+  },
+];
+---
+
+<BaseLayout title={seo.title} description={seo.description}>
+  <Header />
+
+  <PageHero
+    badge="Giải pháp"
+    title="Giải pháp AI theo"
+    titleHighlight=" từng ngành"
+    subtitle="Cùng một nền tảng, cấu hình khác nhau cho từng bài toán kinh doanh. Nội dung chi tiết đang được hoàn thiện."
+  />
+
+  <FeaturesSection
+    badge="Theo ngành nghề"
+    title="Chúng tôi đã triển khai cho"
+    titleHighlight=" nhiều lĩnh vực"
+    description="Chọn lĩnh vực gần nhất với bạn, hoặc liên hệ để chúng tôi tư vấn giải pháp riêng."
+    button1Text="Liên hệ tư vấn"
+    button1Url={NAV.contact}
+    button2Text="Xem sản phẩm"
+    button2Url={NAV.services}
+    featuresList={solutions}
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,546 @@
+---
+// Logo lockup mới (PNG); hai bản đổi theo theme vì card nền theo --card — xem
+// chú thích ở Header.astro.
+import logoLight from "../assets/logo-vareno-ai.png";
+import logoDark from "../assets/logo-vareno-ai-dark.png";
+
+interface Props {
+  title?: string | null;
+  description?: string | null;
+  linkText?: string | null;
+  linkUrl?: string | null;
+}
+
+const {
+  title = "We value your privacy and never store your data without permission",
+  description = "Your conversations and website content are processed securely.\nWe never use your data to train AI models.\nYour privacy is our top priority.",
+  linkText = "Learn more about our privacy policy",
+  linkUrl = "#",
+} = Astro.props;
+---
+
+<section class="privacy-section">
+  <div class="privacy-container">
+    <!-- Left Column: Content -->
+    <div class="privacy-content">
+      <h2 class="privacy-title">
+        {title}
+      </h2>
+      <p class="privacy-description">
+        {description}
+      </p>
+      {
+        linkText && (
+          <a href={linkUrl || "#"} class="privacy-link">
+            <span>{linkText}</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="privacy-link-arrow"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </a>
+        )
+      }
+    </div>
+
+    <!-- Right Column: Orbital Diagram -->
+    <div class="privacy-orbital-wrap">
+      <div class="orbital-diagram">
+        <!-- Dashed Outer Ring -->
+        <div class="orbit-ring orbit-ring--outer"></div>
+        <!-- Dashed Inner Ring -->
+        <div class="orbit-ring orbit-ring--inner"></div>
+
+        <!-- Center Node (Logo SVG) -->
+        <div class="center-node">
+          <div class="center-node-glow"></div>
+          <div class="center-node-card">
+            <div class="center-brand-logo-wrap">
+              <img
+                class="center-brand-logo center-brand-logo--light"
+                src={logoLight.src}
+                width={logoLight.width}
+                height={logoLight.height}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                class="center-brand-logo center-brand-logo--dark"
+                src={logoDark.src}
+                width={logoDark.width}
+                height={logoDark.height}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Orbiting Icons -->
+        <!-- 1. Zapier (Top Left) -->
+        <div class="orbit-node node-zapier" style="--delay: 0s;">
+          <div class="node-inner bg-[#FF4F00]/10 border-[#FF4F00]/30">
+            <img
+              src="https://cdn.simpleicons.org/zapier/FF4F00"
+              alt="Zapier"
+              class="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <!-- 2. Zalo (Top Center) -->
+        <div class="orbit-node node-zalo" style="--delay: 0.5s;">
+          <div class="node-inner bg-[#0068FF]/10 border-[#0068FF]/30">
+            <span class="text-[10px] font-bold text-[#0068FF] tracking-tight"
+              >Zalo</span
+            >
+          </div>
+        </div>
+
+        <!-- 3. WordPress (Top Right) -->
+        <div class="orbit-node node-wordpress" style="--delay: 1s;">
+          <div class="node-inner bg-[#21759B]/10 border-[#21759B]/30">
+            <img
+              src="https://cdn.simpleicons.org/wordpress/21759B"
+              alt="WordPress"
+              class="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <!-- 4. Facebook (Right) -->
+        <div class="orbit-node node-messenger" style="--delay: 1.5s;">
+          <div class="node-inner bg-[#1877F2]/10 border-[#1877F2]/30">
+            <img
+              src="https://cdn.simpleicons.org/facebook/1877F2"
+              alt="Facebook"
+              class="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <!-- 5. Shopify (Bottom Right) -->
+        <div class="orbit-node node-shopify" style="--delay: 2s;">
+          <div class="node-inner bg-[#7AB55C]/10 border-[#7AB55C]/30">
+            <img
+              src="https://cdn.simpleicons.org/shopify/7AB55C"
+              alt="Shopify"
+              class="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <!-- 6. Telegram (Bottom Center) -->
+        <div class="orbit-node node-telegram" style="--delay: 2.5s;">
+          <div class="node-inner bg-[#26A5E4]/10 border-[#26A5E4]/30">
+            <img
+              src="https://cdn.simpleicons.org/telegram/26A5E4"
+              alt="Telegram"
+              class="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <!-- 7. HA (Home Assistant) (Bottom Left) -->
+        <div class="orbit-node node-ha" style="--delay: 3s;">
+          <div class="node-inner bg-[#03A9F4]/10 border-[#03A9F4]/30">
+            <img
+              src="https://cdn.simpleicons.org/homeassistant/03A9F4"
+              alt="Home Assistant"
+              class="w-6 h-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <!-- 8. Messenger (Left) -->
+        <div class="orbit-node node-slack" style="--delay: 3.5s;">
+          <div class="node-inner bg-[#0084FF]/10 border-[#0084FF]/30">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="#0084FF"
+            >
+              <path
+                d="M12 2C6.477 2 2 6.145 2 11.259c0 2.873 1.357 5.44 3.484 7.148V22l3.184-1.75c.85.236 1.75.363 2.684.363 5.523 0 10-4.145 10-9.259C21.352 6.145 17.523 2 12 2zm.992 12.469l-2.54-2.708-4.956 2.708 5.451-5.787 2.602 2.708 4.893-2.708-5.45 5.787z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .privacy-section {
+    padding: 7rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .privacy-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4rem;
+    align-items: center;
+  }
+
+  @media (min-width: 992px) {
+    .privacy-container {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 6rem;
+    }
+  }
+
+  /* Left Column: Content */
+  .privacy-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 600px;
+    text-align: left;
+  }
+
+  .privacy-title {
+    font-family: var(--font-display), sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: hsl(var(--foreground));
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .privacy-description {
+    font-family: var(--font-body), sans-serif;
+    font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+    color: hsl(var(--muted-foreground));
+    line-height: 1.65;
+    margin: 0;
+    white-space: pre-line;
+  }
+
+  .privacy-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+    text-decoration: none;
+    width: fit-content;
+    transition: all 0.2s ease;
+  }
+
+  .privacy-link:hover {
+    color: hsl(var(--primary) / 0.85);
+  }
+
+  .privacy-link:hover .privacy-link-arrow {
+    transform: translateX(3px);
+  }
+
+  .privacy-link-arrow {
+    transition: transform 0.2s ease;
+  }
+
+  /* Right Column: Orbital Diagram */
+  .privacy-orbital-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+  }
+
+  .orbital-diagram {
+    position: relative;
+    width: 340px;
+    height: 340px;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 640px) {
+    .orbital-diagram {
+      width: 440px;
+      height: 440px;
+    }
+  }
+
+  /* Scale the whole diagram down on very narrow phones so the orbit
+     rings/nodes don't get clipped by the column edge (~311px at 375px). */
+  @media (max-width: 420px) {
+    .orbital-diagram {
+      transform: scale(0.82);
+    }
+  }
+
+  /* Orbit Rings */
+  .orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px dashed hsl(var(--foreground) / 0.08);
+  }
+
+  .orbit-ring--inner {
+    width: 65%;
+    height: 65%;
+  }
+
+  .orbit-ring--outer {
+    width: 90%;
+    height: 90%;
+  }
+
+  /* Center Node */
+  .center-node {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+  }
+
+  .center-node-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      hsl(var(--primary) / 0.15) 0%,
+      transparent 70%
+    );
+    filter: blur(8px);
+    animation: center-glow 4s ease-in-out infinite alternate;
+  }
+
+  .center-node-card {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 2px solid hsl(var(--primary) / 0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 10px 25px -5px hsl(var(--primary) / 0.15),
+      inset 0 0 20px hsl(var(--primary) / 0.05);
+    animation: float-center 4s ease-in-out infinite;
+  }
+
+  @media (min-width: 640px) {
+    .center-node-card {
+      width: 130px;
+      height: 130px;
+    }
+    .center-node-glow {
+      width: 160px;
+      height: 160px;
+    }
+  }
+
+  .center-brand-logo-wrap {
+    width: 75px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (min-width: 640px) {
+    .center-brand-logo-wrap {
+      width: 90px;
+    }
+  }
+
+  .center-brand-logo {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  /* Swap bản logo theo theme (html.dark). */
+  .center-brand-logo--dark {
+    display: none;
+  }
+  :global(html.dark) .center-brand-logo--light {
+    display: none;
+  }
+  :global(html.dark) .center-brand-logo--dark {
+    display: block;
+  }
+
+  /* Orbit Nodes (Floating integrations) */
+  .orbit-node {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    animation: float-node 3.5s ease-in-out infinite alternate;
+    animation-delay: var(--delay);
+  }
+
+  .node-inner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid hsl(var(--border) / 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px hsl(var(--foreground) / 0.04);
+    transition: all 0.3s ease;
+  }
+
+  @media (min-width: 640px) {
+    .node-inner {
+      width: 56px;
+      height: 56px;
+    }
+  }
+
+  .orbit-node:hover .node-inner {
+    transform: scale(1.1);
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 8px 24px -6px hsl(var(--primary) / 0.25);
+  }
+
+  /* Node Positions using Polar layout coordinates */
+  /* Inner Ring Nodes: Zalo, Slack, Messenger, Telegram */
+  .node-zalo {
+    margin-top: -105px;
+  } /* Top (0 deg) */
+  .node-messenger {
+    margin-left: 105px;
+  } /* Right (90 deg) */
+  .node-telegram {
+    margin-top: 105px;
+  } /* Bottom (180 deg) */
+  .node-slack {
+    margin-left: -105px;
+  } /* Left (270 deg) */
+
+  /* Outer Ring Nodes: WordPress, Shopify, HA, Zapier */
+  .node-wordpress {
+    margin-top: -140px;
+    margin-left: 140px;
+  } /* Top Right (45 deg) */
+  .node-shopify {
+    margin-top: 140px;
+    margin-left: 140px;
+  } /* Bottom Right (135 deg) */
+  .node-ha {
+    margin-top: 140px;
+    margin-left: -140px;
+  } /* Bottom Left (225 deg) */
+  .node-zapier {
+    margin-top: -140px;
+    margin-left: -140px;
+  } /* Top Left (315 deg) */
+
+  @media (min-width: 640px) {
+    .node-zalo {
+      margin-top: -140px;
+    }
+    .node-messenger {
+      margin-left: 140px;
+    }
+    .node-telegram {
+      margin-top: 140px;
+    }
+    .node-slack {
+      margin-left: -140px;
+    }
+
+    .node-wordpress {
+      margin-top: -190px;
+      margin-left: 190px;
+    }
+    .node-shopify {
+      margin-top: 190px;
+      margin-left: 190px;
+    }
+    .node-ha {
+      margin-top: 190px;
+      margin-left: -190px;
+    }
+    .node-zapier {
+      margin-top: -190px;
+      margin-left: -190px;
+    }
+  }
+
+  /* Animations */
+  @keyframes float-center {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  @keyframes center-glow {
+    0% {
+      transform: translate(-50%, -50%) scale(0.95);
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1.1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes float-node {
+    0% {
+      transform: translate(-50%, -50%) translateY(0px) rotate(0deg);
+    }
+    100% {
+      transform: translate(-50%, -50%) translateY(-6px) rotate(2deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .privacy-section {
+      padding: 3.5rem 0;
+    }
+  }
+</style>

@@ -1,0 +1,112 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import HeroSection from "../../components/HeroSection.astro";
+import FeaturesSection from "../../components/FeaturesSection.astro";
+import PrivacySection from "../../components/PrivacySection.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { NAV } from "../../config/nav";
+import { findProduct } from "../../config/products";
+import { getLangFromUrl, useTranslatedPath } from "../../i18n/utils";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const translatePath = useTranslatedPath(getLangFromUrl(Astro.url));
+const product = findProduct("contentai");
+
+// Deliberately omits HowItWorks / ProductShowcase / SliderInfoSection —
+// their fallbacks leak ChatVareno screenshots, invented testimonials and
+// broken /media/ image paths. See src/pages/contentai.astro for details.
+
+// PLACEHOLDER CONTENT — replace when ContentAI launches.
+const features = [
+  {
+    title: "Automatic outlines",
+    description: "Enter a topic, get an SEO-structured outline in seconds.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Writes in your brand voice",
+    description: "Trained on your existing content so the tone stays yours.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "SEO optimised as you write",
+    description: "Real-time suggestions for keywords, density and headings.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Bulk product descriptions",
+    description: "Generate copy for an entire catalogue from a single data file.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Social content",
+    description: "Turn one long article into a series of platform-native posts.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Pre-publish checks",
+    description: "Catch typos, duplication and inconsistency before you ship.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+];
+---
+
+<BaseLayout
+  title={product.seo.en.title}
+  description={product.seo.en.description}
+  lang="en"
+>
+  <Header />
+
+  <div class="min-h-screen">
+    <HeroSection
+      badgeText="COMING SOON"
+      titleMain="Produce content with"
+      titleHighlight={"AI\nat scale\nin your voice"}
+      subtitle={product.description.en}
+      btn1Text="Get notified"
+      btn1Link={translatePath(NAV.contact)}
+      btn2Text="See other products"
+      btn2Link={translatePath(NAV.services)}
+    />
+
+    <FeaturesSection
+      badge="Features"
+      title="Everything you need to"
+      titleHighlight=" produce content"
+      description="ContentAI handles the repetitive part so your team can focus on ideas."
+      button1Text="Get notified"
+      button1Url={translatePath(NAV.contact)}
+      button2Text="Contact"
+      button2Url={translatePath(NAV.contact)}
+      featuresList={features}
+    />
+
+    <PrivacySection
+      title="Your content stays under your control"
+      description="Your drafts and training data are never used to train public models."
+      linkText="Read the privacy policy"
+      linkUrl="/en/legal/privacy-policy/"
+    />
+
+    <CtaBand
+      title="ContentAI is coming soon"
+      subtitle="Leave your details and we will let you know the moment sign-ups open."
+      buttonLabel="Get notified"
+    />
+  </div>
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,6 @@
+# Cau hinh pnpm cho project don (single package).
+# Cho phep cac dependency nay chay build/postinstall script khi cai dat.
+# (pnpm >=10 chan build script cua dependency theo mac dinh de bao mat.)
+allowBuilds:
+  esbuild: true
+  sharp: true

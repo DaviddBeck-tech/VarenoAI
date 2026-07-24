@@ -1,0 +1,94 @@
+---
+import type { TocItem } from '../lib/toc';
+
+interface Props {
+  toc: TocItem[];
+  title?: string;
+}
+
+const { toc, title = "Nội dung" } = Astro.props;
+
+if (!toc || toc.length === 0) return null;
+---
+
+<nav data-lenis-prevent class="toc-container sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto no-scrollbar pb-8">
+  <h4 class="font-display font-semibold text-lg mb-4 text-foreground/90">{title}</h4>
+  
+  <ul class="space-y-2.5 text-sm">
+    {toc.map((item) => (
+      <li class={`toc-item toc-level-${item.level}`}>
+        <a 
+          href={`#${item.id}`} 
+          class={`
+            block text-muted-foreground hover:text-primary transition-colors
+            ${item.level === 3 ? 'pl-4' : ''}
+            ${item.level === 4 ? 'pl-8' : ''}
+          `}
+        >
+          {item.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  /* Mục lục là một vùng cuộn riêng (overflow-y-auto). Không có dòng này, cuộn
+     tới đáy mục lục xong là con lăn "tràn" sang cuộn cả bài viết — người đọc
+     mất chỗ đang đứng. */
+  .toc-container {
+    overscroll-behavior: contain;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Active state styles applied via JS */
+  .toc-item.is-active > a {
+    color: hsl(var(--primary));
+    font-weight: 500;
+  }
+</style>
+
+<script>
+  // Script to handle intersection observer for active TOC items
+  document.addEventListener('astro:page-load', () => {
+    initTocObserver();
+  });
+  
+  // Fallback for non-view-transitions setups
+  initTocObserver();
+
+  function initTocObserver() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const id = entry.target.getAttribute('id');
+        if (!id) return;
+        
+        const tocLink = document.querySelector(`.toc-container a[href="#${id}"]`);
+        if (!tocLink) return;
+        
+        const tocItem = tocLink.parentElement;
+
+        if (entry.isIntersecting) {
+          // Add active class
+          document.querySelectorAll('.toc-item').forEach(item => item.classList.remove('is-active'));
+          tocItem?.classList.add('is-active');
+        }
+      });
+    }, {
+      rootMargin: '-10% 0px -80% 0px', // Trigger when header reaches top 10% of viewport
+      threshold: 0
+    });
+
+    // Observe all headers that have an ID
+    document.querySelectorAll('article h2[id], article h3[id], article h4[id]').forEach((section) => {
+      observer.observe(section);
+    });
+  }
+</script>

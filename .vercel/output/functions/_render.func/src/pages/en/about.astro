@@ -1,0 +1,51 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import PageHero from "../../components/PageHero.astro";
+import SocialProof from "../../components/SocialProof.astro";
+import PrivacySection from "../../components/PrivacySection.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { SITE } from "../../config/site";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const seo = {
+  title: `About — ${SITE.brandName}`,
+  description: "VarenoAI builds AI products made for Vietnamese businesses.",
+};
+
+const stats = [
+  { value: "2", label: "AI products", icon: "sparkles" },
+  { value: "24/7", label: "Always on", icon: "clock" },
+  { value: "3", label: "Channels integrated", icon: "zap" },
+  { value: "100%", label: "Native Vietnamese", icon: "shield" },
+];
+---
+
+<BaseLayout title={seo.title} description={seo.description} lang="en">
+  <Header />
+
+  <PageHero
+    badge="About"
+    title="We build AI for"
+    titleHighlight=" Vietnamese businesses"
+    subtitle="VarenoAI creates AI tools that understand Vietnamese — the language and the way business is done — and that ship in hours, without a dedicated engineering team."
+  />
+
+  <SocialProof title="A platform built for the Vietnamese market" stats={stats} />
+
+  <PrivacySection
+    title="Your data belongs to you"
+    description="We never use your customer data to train public models. Every connection is encrypted, and you can delete your data at any time."
+    linkText="Read the privacy policy"
+    linkUrl="/en/legal/privacy-policy/"
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

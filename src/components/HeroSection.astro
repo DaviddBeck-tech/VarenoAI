@@ -1,0 +1,449 @@
+---
+import { getLangFromUrl } from "../i18n/utils";
+
+interface Props {
+  badgeText?: string | null;
+  titleMain?: string | null;
+  titleHighlight?: string | null;
+  subtitle?: string | null;
+  btn1Text?: string | null;
+  btn1Link?: string | null;
+  btn2Text?: string | null;
+  btn2Link?: string | null;
+  mockupImageUrl?: string | null;
+  mockupImageAlt?: string | null;
+  mockupImages?: (string | null)[] | null;
+}
+
+const {
+  badgeText,
+  titleMain,
+  titleHighlight,
+  subtitle,
+  btn1Text,
+  btn1Link,
+  btn2Text,
+  btn2Link,
+  mockupImageUrl,
+  mockupImages,
+} = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const isEn = lang === "en";
+
+// Rotating words for the animated highlight.
+// `titleHighlight` (ACF textarea) holds one rotating word per line.
+const cmsWords = (titleHighlight || "")
+  .split("\n")
+  .map((w) => w.trim())
+  .filter(Boolean);
+const rotatingWords =
+  cmsWords.length > 0
+    ? cmsWords
+    : isEn
+      ? ["consult", "close deals", "care for clients"]
+      : ["tư vấn", "chốt đơn", "chăm sóc KH"];
+
+// Background slides — uses the WordPress gallery (chatMockupImages) when available,
+// each image becomes one slide. Falls back to a single image or the defaults.
+const wpSlides = (mockupImages ?? []).filter((src): src is string => Boolean(src));
+const fallbackSlides = [
+  mockupImageUrl ||
+    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=2070&auto=format&fit=crop",
+];
+const bgSlides = wpSlides.length > 0 ? wpSlides : fallbackSlides;
+---
+
+<section class="hero" id="hero">
+  <!-- Background slider -->
+  <div class="hero-bg">
+    {
+      bgSlides.map((src, i) => (
+        <div
+          class={`hero-bg-slide${i === 0 ? " active" : ""}`}
+          data-bg-index={i}
+        >
+          <img
+            src={src}
+            alt={`Hero background slide ${i + 1}`}
+            class="hero-bg-img"
+            width="1920"
+            height="1080"
+            loading={i === 0 ? "eager" : "lazy"}
+            fetchpriority={i === 0 ? "high" : "auto"}
+            decoding="async"
+          />
+        </div>
+      ))
+    }
+    <div class="hero-overlay"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="hero-content">
+    <!-- Badge -->
+    <p class="hero-badge">
+      {
+        badgeText ||
+          (isEn
+            ? "AI AGENT PLATFORM FOR VIETNAMESE BUSINESSES"
+            : "NỀN TẢNG CHAT AI AGENT CHO DOANH NGHIỆP VIỆT")
+      }
+    </p>
+
+    <!-- Title -->
+    <h1 class="hero-title">
+      {
+        titleMain ||
+          (isEn
+            ? "Where Vietnamese businesses come to"
+            : "Nơi doanh nghiệp Việt đến để")
+      }
+      <span class="hero-rotating-wrap">
+        {" "}<span class="hero-rotating-word" id="hero-rotating-word">
+          {rotatingWords[0]}
+        </span><span class="hero-title-dot">.</span>
+      </span>
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="hero-subtitle">
+      {
+        subtitle ||
+          (isEn
+            ? "Train AI from Website, PDF, Q&A — deploy on Website, Zalo OA, Messenger. Answer 24/7, hand off to admin when needed."
+            : "Huấn luyện AI từ Website, PDF, Q&A — triển khai trên Website, Zalo OA, Messenger. Trả lời 24/7, chuyển admin khi cần.")
+      }
+    </p>
+
+    <!-- CTA Buttons -->
+    <div class="hero-actions">
+      <a
+        href={btn1Link || "#demo"}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hero-btn hero-btn--outline"
+      >
+        {btn1Text || (isEn ? "View Demo" : "Xem Demo")}
+      </a>
+      <a
+        href={btn2Link || "#trial"}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hero-btn hero-btn--primary"
+      >
+        {btn2Text || (isEn ? "Start Free Trial" : "Dùng thử miễn phí")}
+      </a>
+    </div>
+
+    <!-- Slider Dots indicator -->
+    <div class="hero-bg-dots">
+      {
+        bgSlides.map((_, i) => (
+          <button
+            class={`hero-bg-dot${i === 0 ? " active" : ""}`}
+            data-bg-dot={i}
+            aria-label={`Go to background slide ${i + 1}`}
+          />
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Pass rotating words and bgSlides count to script -->
+<script define:vars={{ rotatingWords, bgCount: bgSlides.length }}>
+  // Title rotation
+  const el = document.getElementById("hero-rotating-word");
+  if (el && rotatingWords.length > 1) {
+    let idx = 0;
+    const cycle = () => {
+      idx = (idx + 1) % rotatingWords.length;
+      el.classList.add("hero-rotating-word--exit");
+      setTimeout(() => {
+        el.textContent = rotatingWords[idx];
+        el.classList.remove("hero-rotating-word--exit");
+        el.classList.add("hero-rotating-word--enter");
+        setTimeout(() => el.classList.remove("hero-rotating-word--enter"), 500);
+      }, 350);
+    };
+    setInterval(cycle, 2800);
+  }
+
+  // Background image slider
+  (function () {
+    const bgSlides = document.querySelectorAll(".hero-bg-slide");
+    const dots = document.querySelectorAll(".hero-bg-dot");
+    if (!bgSlides.length) return;
+
+    let currentBg = 0;
+    let bgTimer;
+
+    function setBg(idx) {
+      bgSlides.forEach((s) => s.classList.remove("active"));
+      dots.forEach((d) => d.classList.remove("active"));
+
+      currentBg = (idx + bgCount) % bgCount;
+      bgSlides[currentBg].classList.add("active");
+      if (dots[currentBg]) dots[currentBg].classList.add("active");
+    }
+
+    function startBgTimer() {
+      clearInterval(bgTimer);
+      bgTimer = setInterval(() => {
+        setBg(currentBg + 1);
+      }, 6000);
+    }
+
+    dots.forEach((d) => {
+      d.addEventListener("click", () => {
+        const idx = parseInt(d.dataset.bgDot || "0", 10);
+        setBg(idx);
+        startBgTimer();
+      });
+    });
+
+    startBgTimer();
+  })();
+</script>
+
+<style>
+  /* ── Hero ──────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    padding-top: 64px; /* header height */
+    overflow: hidden;
+  }
+
+  /* ── Background ────────────────────────────────────────────── */
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hero-bg-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .hero-bg-slide.active {
+    opacity: 1;
+  }
+
+  .hero-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  /* Fallback gradient when no image */
+  .hero-bg-gradient {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      135deg,
+      hsl(222 47% 10%) 0%,
+      hsl(240 30% 18%) 50%,
+      hsl(222 47% 8%) 100%
+    );
+  }
+
+  /* Dark overlay — stronger on left for text readability */
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to right,
+      hsl(222 47% 7% / 0.88) 0%,
+      hsl(222 47% 7% / 0.65) 55%,
+      hsl(222 47% 7% / 0.25) 100%
+    );
+  }
+
+  /* ── Slider Dots ───────────────────────────────────────────── */
+  .hero-bg-dots {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+
+  .hero-bg-dot {
+    width: 20px;
+    height: 3px;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.2);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .hero-bg-dot.active {
+    width: 40px;
+    background: hsl(var(--primary));
+  }
+
+  /* ── Content ────────────────────────────────────────────────── */
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 5rem 2rem 5rem;
+    max-width: 680px;
+    /* left-align */
+    margin-left: max(2rem, calc((100vw - 1400px) / 2));
+  }
+
+  /* ── Badge ─────────────────────────────────────────────────── */
+  .hero-badge {
+    font-family: "Roboto", sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #ffffff;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Title ─────────────────────────────────────────────────── */
+  .hero-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(2.25rem, 5.5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-rotating-wrap {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .hero-rotating-word {
+    color: hsl(var(--primary));
+    display: inline-block;
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s ease;
+  }
+
+  .hero-rotating-word--exit {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  .hero-rotating-word--enter {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: word-enter 0.4s ease forwards;
+  }
+
+  @keyframes word-enter {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-title-dot {
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+
+  /* ── Subtitle ──────────────────────────────────────────────── */
+  .hero-subtitle {
+    font-family: "Roboto", sans-serif;
+    font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+    line-height: 1.7;
+    color: hsl(0 0% 100% / 0.72);
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+  }
+
+  /* ── CTA Buttons ────────────────────────────────────────────── */
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.875rem;
+  }
+
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.75rem;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 0.625rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .hero-btn--primary {
+    background: hsl(var(--primary));
+    color: #fff;
+    border: none;
+  }
+
+  .hero-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px -4px hsl(var(--primary) / 0.45);
+  }
+
+  .hero-btn--outline {
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid hsl(0 0% 100% / 0.3);
+  }
+
+  .hero-btn--outline:hover {
+    border-color: hsl(0 0% 100% / 0.7);
+    background: hsl(0 0% 100% / 0.05);
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .hero {
+      min-height: 75vh;
+      align-items: flex-end;
+      padding-bottom: 3rem;
+    }
+
+    .hero-content {
+      margin-left: 0;
+      padding: 2rem 1.25rem;
+      max-width: 100%;
+    }
+
+    .hero-overlay {
+      background: hsl(222 47% 7% / 0.78);
+    }
+
+    .hero-title {
+      font-size: 2rem;
+    }
+
+    .hero-actions {
+      flex-direction: column;
+    }
+
+    .hero-btn {
+      width: 100%;
+    }
+  }
+</style>

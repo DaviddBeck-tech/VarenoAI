@@ -1,0 +1,143 @@
+---
+// ── TRIỂN KHAI TRONG VÀI GIỜ — DẢI 3 BƯỚC TĨNH (trang /solutions/) ───
+// Ba bước đánh số, xếp ngang, nối bằng đường hairline mờ. KHÔNG ảnh (tránh
+// trùng ảnh app-* với SolutionRows trên cùng trang), KHÔNG JS. Một "họ bố
+// cục" gọn khác với hàng xen kẽ ở trên và lưới thẻ FeaturesSection ở dưới.
+interface Step {
+  title: string;
+  desc: string;
+}
+
+interface Props {
+  eyebrow: string;
+  heading: string;
+  subheading?: string | null;
+  steps: Step[];
+}
+
+const { eyebrow, heading, subheading, steps } = Astro.props;
+---
+
+<section class="ds-section">
+  <div class="container">
+    <header class="ds-head">
+      <span class="ds-eyebrow">{eyebrow}</span>
+      <h2 class="ds-heading">{heading}</h2>
+      {subheading && <p class="ds-subheading">{subheading}</p>}
+    </header>
+
+    <ol class="ds-steps" role="list">
+      {
+        steps.map((s, i) => (
+          <li class="ds-step">
+            <span class="ds-num" aria-hidden="true">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <h3 class="ds-step-title">{s.title}</h3>
+            <p class="ds-step-desc">{s.desc}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .ds-section {
+    padding: 5rem 0;
+  }
+
+  .ds-head {
+    max-width: 46rem;
+    margin: 0 0 3rem;
+  }
+  .ds-eyebrow {
+    display: inline-block;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    margin-bottom: 0.875rem;
+  }
+  .ds-heading {
+    font-family: "Google Sans", sans-serif;
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.875rem;
+    text-wrap: balance;
+  }
+  .ds-subheading {
+    font-size: var(--fs-lead);
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    max-width: 55ch;
+  }
+
+  .ds-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .ds-step {
+    position: relative;
+    padding: 2rem 1.75rem;
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card));
+  }
+  /* Đường nối mảnh giữa các bước (chỉ desktop). */
+  .ds-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -1.5rem;
+    width: 1.5rem;
+    height: 1px;
+    background: hsl(var(--border));
+  }
+
+  .ds-num {
+    display: block;
+    font-family: "Google Sans", sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: hsl(var(--primary) / 0.35);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 1rem;
+  }
+  .ds-step-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: 1.1875rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.5rem;
+  }
+  .ds-step-desc {
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+  }
+
+  @media (max-width: 860px) {
+    .ds-steps {
+      grid-template-columns: 1fr;
+    }
+    .ds-step:not(:last-child)::after {
+      display: none;
+    }
+  }
+</style>

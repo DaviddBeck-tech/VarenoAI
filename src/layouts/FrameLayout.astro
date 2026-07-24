@@ -1,0 +1,93 @@
+---
+// Khung nhúng một site NGOÀI (iframe) full-screen, giữ URL local.
+// Cố tình KHÔNG dùng BaseLayout: trang này chỉ là vỏ bọc, không cần
+// font/gtag/widget/hreflang của trang tổng, và cần head riêng (noindex + canonical).
+// KHÔNG có thanh header riêng — chỉ hiển thị đúng site thật; quay lại bằng nút back.
+interface Props {
+  /** URL site thật để nhúng, ví dụ https://chatvareno.com/ */
+  iframeSrc: string;
+  /** Nhãn cho iframe (a11y) + text "đang tải" */
+  label: string;
+  title: string;
+  description?: string;
+  lang?: string;
+}
+
+const { iframeSrc, label, title, description, lang = "vi" } = Astro.props;
+
+// Canonical trỏ về DOMAIN THẬT để Google gộp tín hiệu về đó, không index
+// bản nhúng dưới VarenoAI (tránh trùng lặp nội dung).
+const canonical = iframeSrc;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/x-icon" href="/favicon.png" />
+    <style is:global>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      .frame-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family:
+          "Roboto", ui-sans-serif, system-ui, -apple-system, sans-serif;
+        font-size: 0.9375rem;
+        color: #64748b;
+        background: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        .frame-loading {
+          color: #94a3b8;
+          background: #0b1120;
+        }
+      }
+
+      .frame-embed {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame-loading" id="frame-loading">Đang tải {label}…</div>
+
+    <iframe
+      class="frame-embed"
+      src={iframeSrc}
+      title={label}
+      loading="eager"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+
+    <script>
+      // Ẩn lớp "đang tải" khi iframe tải xong
+      const iframe = document.querySelector<HTMLIFrameElement>(".frame-embed");
+      const loading = document.getElementById("frame-loading");
+      iframe?.addEventListener("load", () => loading?.remove());
+    </script>
+  </body>
+</html>

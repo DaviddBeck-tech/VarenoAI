@@ -1,0 +1,21 @@
+---
+// /en/chatvareno/ — NHÚNG bản tiếng Anh của site thật (chatvareno.com/en/).
+import FrameLayout from "../../layouts/FrameLayout.astro";
+import { findProduct } from "../../config/products";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const product = findProduct("chatvareno");
+const base = product.externalUrl ?? "";
+---
+
+<FrameLayout
+  iframeSrc={`${base}/en/`}
+  label={product.name}
+  title={product.seo.en.title}
+  description={product.seo.en.description}
+  lang="en"
+/>

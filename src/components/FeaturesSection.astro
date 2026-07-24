@@ -1,0 +1,533 @@
+---
+import { getLangFromUrl } from "../i18n/utils";
+import { SITE } from "../config/site";
+
+interface Props {
+  badge?: string | null;
+  title?: string | null;
+  titleHighlight?: string | null;
+  description?: string | null;
+  button1Text?: string | null;
+  button1Url?: string | null;
+  button2Text?: string | null;
+  button2Url?: string | null;
+  featuresList?: {
+    title: string;
+    description?: string;
+    image?: { node?: { sourceUrl?: string } } | null;
+    link?: string | null;
+  }[] | null;
+}
+
+const lang = getLangFromUrl(Astro.url);
+const isEn = lang === "en";
+
+const {
+  badge,
+  title: sectionTitle,
+  titleHighlight: sectionTitleHighlight,
+  description: sectionDescription,
+  button1Text,
+  button1Url,
+  button2Text,
+  button2Url,
+  featuresList,
+} = Astro.props;
+
+// Default icon mapping by index
+const defaultIcons = ["sparkles", "globe", "bell", "user-plus", "bar-chart", "share-2"];
+
+const defaultFeaturesEn = [
+  {
+    title: "Smart Answering",
+    bullets: ["Understand conversation context", "Personalize for each customer"],
+    icon: "sparkles"
+  },
+  {
+    title: "Website Integration",
+    bullets: ["1-line code installation", "Customize interface"],
+    icon: "globe"
+  },
+  {
+    title: "Admin Notification",
+    bullets: ["Real-time alerts", "Human handoff support"],
+    icon: "bell"
+  },
+  {
+    title: "Lead Collection",
+    bullets: ["Smart capture forms", "CRM & Google Sheets sync"],
+    icon: "user-plus"
+  },
+  {
+    title: "Analytics & Statistics",
+    bullets: ["Conversion rate tracking", "Top questions insight"],
+    icon: "bar-chart"
+  },
+  {
+    title: "Omnichannel Support",
+    bullets: ["Zalo OA, Messenger integration", "Telegram, WhatsApp support"],
+    icon: "share-2"
+  }
+];
+
+const defaultFeaturesVi = [
+  {
+    title: "Trả lời thông minh",
+    bullets: ["Hiểu ngữ cảnh hội thoại", "Cá nhân hoá theo khách"],
+    icon: "sparkles"
+  },
+  {
+    title: "Tích hợp Website",
+    bullets: ["Cài đặt 1 dòng mã", "Tuỳ biến giao diện"],
+    icon: "globe"
+  },
+  {
+    title: "Thông báo Admin",
+    bullets: ["Cảnh báo theo thời gian thực", "Chuyển người thật"],
+    icon: "bell"
+  },
+  {
+    title: "Thu thập Lead",
+    bullets: ["Form thông minh", "Đồng bộ CRM"],
+    icon: "user-plus"
+  },
+  {
+    title: "Thống kê Analytics",
+    bullets: ["Tỉ lệ chốt đơn", "Top câu hỏi"],
+    icon: "bar-chart"
+  },
+  {
+    title: "Đa kênh",
+    bullets: ["Zalo OA, Messenger", "Telegram, WhatsApp"],
+    icon: "share-2"
+  }
+];
+
+// If GraphQL data is provided, convert to display format; otherwise use defaults
+const features = (featuresList && featuresList.length > 0)
+  ? featuresList.map((f, i) => ({
+      title: f.title,
+      // description is a textarea — each line becomes a bullet
+      bullets: f.description
+        ? f.description.split("\n").map((s) => s.trim()).filter(Boolean)
+        : [],
+      icon: defaultIcons[i % defaultIcons.length],
+      image: f.image?.node?.sourceUrl || null,
+      link: f.link || null,
+    }))
+  : (isEn ? defaultFeaturesEn : defaultFeaturesVi).map((f) => ({ ...f, image: null, link: null }));
+
+// Section header fields with fallbacks
+const displayTitle = sectionTitle || (isEn ? "Running a business is hard. " : "Vận hành doanh nghiệp rất khó. ");
+const displayTitleHighlight = sectionTitleHighlight || (isEn ? `${SITE.brandName} makes it easier` : `${SITE.brandName} khiến mọi thứ dễ hơn`);
+const displayDescription = sectionDescription || (isEn
+  ? "One platform for every team — consulting, selling, and customer care — connecting AI and humans seamlessly."
+  : "Một nền tảng cho mọi đội — tư vấn, bán hàng và chăm sóc khách hàng — kết nối liền mạch giữa AI và con người.");
+---
+
+<section id="features" class="feat-section">
+  <div class="feat-container">
+    <!-- Left Column (Static Title & Description) -->
+    <div class="feat-left-col">
+      <div class="feat-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="feat-badge-sparkle">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+        <span>{badge || "Powered by AI"}</span>
+      </div>
+
+      <h2 class="feat-main-title">
+        {displayTitle}
+        <br />
+        <span class="feat-title-highlight">
+          {displayTitleHighlight}<span class="feat-title-dot">.</span>
+        </span>
+      </h2>
+
+      <p class="feat-subtitle">
+        {displayDescription}
+      </p>
+
+      <div class="feat-actions">
+        <a href={button1Url || "#demo"} target="_blank" rel="noopener noreferrer" class="feat-btn feat-btn--primary">
+          {button1Text || (isEn ? "View Demo" : "Xem Demo")}
+        </a>
+        <a href={button2Url || "#trial"} target="_blank" rel="noopener noreferrer" class="feat-btn feat-btn--outline">
+          {button2Text || (isEn ? "Start Free Trial" : "Dùng thử miễn phí")}
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Column (Features Grid) -->
+    <div class="feat-right-col">
+      <div class="feat-cards-grid">
+        {features.map((item) => (
+          <div class="feat-card">
+            <div class="feat-card-icon-wrap">
+              {item.image ? (
+                <img src={item.image} alt={item.title} class="feat-card-img" width="48" height="48" loading="lazy" decoding="async" />
+              ) : (<>
+              {item.icon === "sparkles" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feat-card-svg">
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  <path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5.5z"/>
+                </svg>
+              )}
+              {item.icon === "globe" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feat-card-svg">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+                  <path d="M2 12h20"/>
+                </svg>
+              )}
+              {item.icon === "bell" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feat-card-svg">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+              )}
+              {item.icon === "user-plus" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feat-card-svg">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <line x1="19" x2="19" y1="8" y2="14"/>
+                  <line x1="22" x2="16" y1="11" y2="11"/>
+                </svg>
+              )}
+              {item.icon === "bar-chart" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feat-card-svg">
+                  <line x1="18" x2="18" y1="20" y2="10"/>
+                  <line x1="12" x2="12" y1="20" y2="4"/>
+                  <line x1="6" x2="6" y1="20" y2="14"/>
+                </svg>
+              )}
+              {item.icon === "share-2" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feat-card-svg">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+                  <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+                </svg>
+              )}
+              </>)}
+            </div>
+
+            <h3 class="feat-card-title">{item.title}</h3>
+            
+            <ul class="feat-card-bullets">
+              {item.bullets.map((bullet) => (
+                <li class="feat-card-bullet">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="feat-bullet-check">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+
+            <a href={item.link || "#more"} class="feat-card-link">
+              <span>{isEn ? "Learn more" : "Tìm hiểu thêm"}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" x2="19" y1="12" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .feat-section {
+    padding: 7rem 0;
+    background: transparent;
+    color: hsl(var(--foreground));
+  }
+
+  .feat-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4rem;
+  }
+
+  @media (min-width: 992px) {
+    .feat-container {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 5rem;
+      align-items: flex-start;
+    }
+    .feat-left-col {
+      position: sticky;
+      top: 100px;
+    }
+  }
+
+  /* Left Column */
+  .feat-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .feat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+  }
+
+  .feat-badge-sparkle {
+    color: hsl(var(--primary));
+  }
+
+  .feat-main-title {
+    font-family: var(--font-display), sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: hsl(var(--foreground));
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .feat-title-highlight {
+    color: hsl(var(--foreground));
+  }
+
+  .feat-title-dot {
+    color: hsl(var(--primary));
+  }
+
+  .feat-subtitle {
+    font-family: var(--font-body), sans-serif;
+    font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
+    color: hsl(var(--muted-foreground));
+    line-height: 1.65;
+    margin: 0;
+    max-width: 480px;
+  }
+
+  .feat-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .feat-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6875rem 1.5rem;
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .feat-btn--primary {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: none;
+  }
+
+  .feat-btn--primary:hover {
+    background: hsl(var(--primary) / 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.25);
+  }
+
+  .feat-btn--outline {
+    background: transparent;
+    color: hsl(var(--primary));
+    border: 1.5px solid hsl(var(--primary));
+  }
+
+  .feat-btn--outline:hover {
+    background: hsl(var(--primary) / 0.08);
+    transform: translateY(-1px);
+  }
+
+  /* Right Column (Cards Grid) */
+  .feat-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  /* Card */
+  .feat-card {
+    background: hsl(var(--card) / 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .feat-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: 0 12px 30px -10px hsl(var(--primary) / 0.15);
+  }
+
+  .feat-card-icon-wrap {
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.08);
+    width: 44px;
+    height: 44px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .feat-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .feat-card-title {
+    font-family: var(--font-display), sans-serif;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin: 0;
+  }
+
+  .feat-card-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .feat-card-bullet {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    line-height: 1.4;
+  }
+
+  .feat-bullet-check {
+    color: hsl(var(--primary));
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+  }
+
+  .feat-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: var(--font-body), sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+    text-decoration: none;
+    margin-top: auto;
+    width: fit-content;
+    transition: gap 0.2s ease;
+  }
+
+  .feat-card-link:hover {
+    gap: 0.5rem;
+  }
+
+  /* ── Mobile Compact ──────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .feat-section {
+      padding: 3.5rem 0;
+    }
+
+    /* Stack CTA buttons full-width so text never wraps awkwardly */
+    .feat-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.625rem;
+    }
+
+    .feat-btn {
+      width: 100%;
+      white-space: nowrap;
+    }
+
+    .feat-cards-grid {
+      gap: 0.75rem;
+    }
+
+    .feat-card {
+      padding: 1rem;
+      gap: 0.625rem;
+      border-radius: 0.75rem;
+    }
+
+    /* Disable hover effects on mobile */
+    .feat-card:hover {
+      transform: none;
+      border-color: hsl(var(--border) / 0.7);
+      box-shadow: none;
+    }
+
+    .feat-card-icon-wrap {
+      width: 32px;
+      height: 32px;
+      border-radius: 0.375rem;
+    }
+
+    .feat-card-icon-wrap svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .feat-card-title {
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+
+    .feat-card-bullets {
+      gap: 0.375rem;
+    }
+
+    .feat-card-bullet {
+      font-size: 0.6875rem;
+      gap: 0.3rem;
+      line-height: 1.35;
+    }
+
+    .feat-bullet-check {
+      width: 10px;
+      height: 10px;
+    }
+
+    .feat-card-link {
+      font-size: 0.6875rem;
+      gap: 0.25rem;
+    }
+  }
+</style>
