@@ -1,8 +1,6 @@
 ---
-// ── TRIỂN KHAI TRONG VÀI GIỜ — DẢI 3 BƯỚC TĨNH (trang /solutions/) ───
-// Ba bước đánh số, xếp ngang, nối bằng đường hairline mờ. KHÔNG ảnh (tránh
-// trùng ảnh app-* với SolutionRows trên cùng trang), KHÔNG JS. Một "họ bố
-// cục" gọn khác với hàng xen kẽ ở trên và lưới thẻ FeaturesSection ở dưới.
+// ── TRIỂN KHAI TRONG VÀI GIỜ — DẢI 3 BƯỚC ────────────────────────
+// Ba bước đánh số, xếp ngang, nối bằng đường hairline mờ, không dùng ảnh hay JS.
 interface Step {
   title: string;
   desc: string;
@@ -90,11 +88,13 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
 
   .ds-step {
     position: relative;
-    padding: 2rem 1.75rem;
+    isolation: isolate;
+    padding: 1.5rem 1.75rem;
     border-radius: var(--shape-card);
     border: 1px solid hsl(var(--border) / 0.7);
     background: hsl(var(--card));
   }
+
   /* Đường nối mảnh giữa các bước (chỉ desktop). */
   .ds-step:not(:last-child)::after {
     content: "";
