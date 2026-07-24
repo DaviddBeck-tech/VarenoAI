@@ -1,0 +1,278 @@
+---
+// ── CÂU CHUYỆN + SỨ MỆNH + SỐ LIỆU (trang /about/) ──────────────
+// Bố cục 2 cột LỆCH: cột trái kể chuyện (rộng hơn), cột phải là một THẺ SỨ MỆNH
+// nổi bật (nền quầng xanh thương hiệu, dính khi cuộn). Bên dưới là dải SỐ LIỆU
+// thật, ngăn nhau bằng đường hairline — KHÔNG dùng logo khách hàng giả như
+// SocialProof mặc định.
+//
+// Section này tự nhận .scroll-animate từ IntersectionObserver ở BaseLayout
+// (mọi <section> đều được gắn) nên không cần JS riêng.
+
+interface Stat {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  eyebrow: string;
+  heading: string;
+  headingAccent?: string | null;
+  paragraphs: string[];
+  missionLabel: string;
+  mission: string;
+  points: string[];
+  stats: Stat[];
+}
+
+const {
+  eyebrow,
+  heading,
+  headingAccent,
+  paragraphs,
+  missionLabel,
+  mission,
+  points,
+  stats,
+} = Astro.props;
+---
+
+<section class="about-story">
+  <div class="container as-inner">
+    <div class="as-copy">
+      <span class="as-eyebrow">{eyebrow}</span>
+      <h2 class="as-heading">
+        {heading}{headingAccent && <span class="as-hl">{headingAccent}</span>}
+      </h2>
+      {paragraphs.map((p) => <p class="as-p">{p}</p>)}
+    </div>
+
+    <aside class="as-mission">
+      <span class="as-mission-label">
+        <svg
+          viewBox="0 0 24 24"
+          width="15"
+          height="15"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="6"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+        </svg>
+        {missionLabel}
+      </span>
+      <p class="as-mission-text">{mission}</p>
+      <ul class="as-points" role="list">
+        {
+          points.map((pt) => (
+            <li>
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              {pt}
+            </li>
+          ))
+        }
+      </ul>
+    </aside>
+  </div>
+
+  <div class="container">
+    <dl class="as-stats">
+      {
+        stats.map((s) => (
+          <div class="as-stat">
+            <dt class="as-stat-num">{s.value}</dt>
+            <dd class="as-stat-label">{s.label}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .about-story {
+    padding: 4.5rem 0 3rem;
+  }
+
+  /* Lệch có chủ đích: cột kể chuyện rộng hơn cột sứ mệnh. */
+  .as-inner {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .as-eyebrow {
+    display: inline-block;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    margin-bottom: 1rem;
+  }
+
+  .as-heading {
+    font-family: "Google Sans", sans-serif;
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 0 0 1.5rem;
+    text-wrap: balance;
+  }
+  .as-hl {
+    color: hsl(var(--primary));
+  }
+
+  .as-p {
+    font-size: var(--fs-lead);
+    line-height: 1.8;
+    color: hsl(var(--muted-foreground));
+    margin: 0 0 1.15rem;
+    max-width: 44ch;
+  }
+  .as-p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ── Thẻ sứ mệnh: khối thương hiệu, dính khi cuộn ─────────────── */
+  .as-mission {
+    position: sticky;
+    top: 6rem; /* header cao 4rem + thở */
+    padding: clamp(1.75rem, 3vw, 2.25rem);
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--primary) / 0.18);
+    /* Nền GIỐNG hero/CTA: nền website phủ hai quầng xanh --primary mềm. */
+    background:
+      radial-gradient(
+        70% 120% at 0% 0%,
+        hsl(var(--primary) / 0.16) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        60% 120% at 100% 100%,
+        hsl(var(--primary) / 0.1) 0%,
+        transparent 58%
+      ),
+      hsl(var(--card));
+    box-shadow: var(--elev-2);
+  }
+
+  .as-mission-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+  }
+
+  .as-mission-text {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: hsl(var(--foreground));
+    margin: 0.9rem 0 0;
+    text-wrap: balance;
+  }
+
+  .as-points {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 1.5rem 0 0;
+    border-top: 1px solid hsl(var(--primary) / 0.16);
+    display: grid;
+    gap: 0.75rem;
+  }
+  .as-points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: hsl(var(--foreground) / 0.9);
+  }
+  .as-points svg {
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: hsl(var(--primary));
+  }
+
+  /* ── Dải số liệu (thật, không có logo giả) ────────────────────── */
+  .as-stats {
+    margin: clamp(3rem, 5vw, 4.5rem) 0 0;
+    padding: 2rem 0 0;
+    border-top: 1px solid hsl(var(--border) / 0.8);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+  .as-stat {
+    text-align: center;
+  }
+  .as-stat-num {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: hsl(var(--primary));
+  }
+  .as-stat-label {
+    margin: 0.5rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ── Responsive ───────────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .as-inner {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    .as-mission {
+      position: static;
+    }
+    .as-p {
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .as-stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.75rem 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .as-mission {
+      position: static;
+    }
+  }
+</style>

@@ -1,0 +1,314 @@
+---
+// ── GIẢI PHÁP THEO BÀI TOÁN — HÀNG XEN KẼ (trang /solutions/) ────────
+// Mỗi bài toán = MỘT hàng 2 cột: chữ một bên, ảnh UI một bên, lật trái–phải
+// luân phiên (hàng chẵn đảo cột bằng `order`). KHÔNG JS — mọi hàng hiện sẵn,
+// tốt cho SEO và đọc quét. Đây là "họ bố cục" riêng, khác các trang khác.
+//
+// Ảnh giữ TRONG component (không nhét vào config) — giống EcosystemShowcase:
+// config là dữ liệu thuần, asset là của riêng section. Bài toán chưa có ảnh
+// thật (ContentAI sắp ra mắt) → hiện SLOT có nhãn, KHÔNG dựng ảnh giả.
+//
+// <img> thay vì <Image>: astro.config bật vercel imageService → /_image trả
+// 500 khi `astro dev`. Import tĩnh vẫn cho src băm + width/height thật.
+import type { ImageMetadata } from "astro";
+import ProductIcon from "./ProductIcon.astro";
+
+import appMockup from "../assets/app-mockup.png";
+import appDeploy from "../assets/app-deploy.png";
+import appAnalytics from "../assets/app-analytics.png";
+
+const SHOTS: Record<string, ImageMetadata> = {
+  sales: appMockup,
+  support: appDeploy,
+  leads: appAnalytics,
+};
+
+interface Row {
+  product: string;
+  icon: string;
+  imageKey?: string | null;
+  title: string;
+  problem: string;
+  points: string[];
+  channels?: string[];
+  badge?: string | null;
+  imageAlt?: string | null;
+}
+
+interface Props {
+  eyebrow: string;
+  heading: string;
+  subheading?: string | null;
+  rows: Row[];
+}
+
+const { eyebrow, heading, subheading, rows } = Astro.props;
+---
+
+<section class="sr-section">
+  <div class="container">
+    <header class="sr-head">
+      <span class="sr-eyebrow">{eyebrow}</span>
+      <h2 class="sr-heading">{heading}</h2>
+      {subheading && <p class="sr-subheading">{subheading}</p>}
+    </header>
+
+    <div class="sr-rows">
+      {
+        rows.map((r) => {
+          const shot = r.imageKey ? SHOTS[r.imageKey] : null;
+          return (
+            <article class="sr-row">
+              <div class="sr-copy">
+                <span class="sr-tag">
+                  <ProductIcon name={r.icon} size={15} />
+                  {r.product}
+                </span>
+                <h3 class="sr-title">{r.title}</h3>
+                <p class="sr-problem">{r.problem}</p>
+
+                <ul class="sr-points" role="list">
+                  {r.points.map((pt) => (
+                    <li>
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                      {pt}
+                    </li>
+                  ))}
+                </ul>
+
+                {r.channels && r.channels.length > 0 && (
+                  <ul class="sr-channels" role="list">
+                    {r.channels.map((c) => (
+                      <li>{c}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div class="sr-media">
+                {shot ? (
+                  <div class="sr-frame">
+                    <img
+                      src={shot.src}
+                      width={shot.width}
+                      height={shot.height}
+                      alt={r.imageAlt ?? r.title}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ) : (
+                  <div class="sr-slot">
+                    <ProductIcon name={r.icon} size={40} />
+                    {r.badge && <span class="sr-slot-badge">{r.badge}</span>}
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .sr-section {
+    padding: 5rem 0;
+  }
+
+  .sr-head {
+    max-width: 46rem;
+    margin: 0 0 3.5rem;
+  }
+  .sr-eyebrow {
+    display: inline-block;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    margin-bottom: 0.875rem;
+  }
+  .sr-heading {
+    font-family: "Google Sans", sans-serif;
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.875rem;
+    text-wrap: balance;
+  }
+  .sr-subheading {
+    font-size: var(--fs-lead);
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    max-width: 55ch;
+  }
+
+  /* ── Danh sách hàng ─────────────────────────────────────────── */
+  .sr-rows {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3.5rem, 6vw, 6rem);
+  }
+
+  .sr-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4.5rem);
+  }
+  /* Hàng chẵn: đảo cột → ảnh sang trái, chữ sang phải (nhịp xen kẽ). */
+  .sr-row:nth-child(even) .sr-media {
+    order: -1;
+  }
+
+  /* ── Cột chữ ───────────────────────────────────────────────── */
+  .sr-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+    border: 1px solid hsl(var(--primary) / 0.2);
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+  }
+  .sr-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(1.4rem, 2.4vw, 1.875rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 1rem 0 0.75rem;
+    text-wrap: balance;
+  }
+  /* Nỗi đau: một câu dẫn, tách khỏi danh sách giải pháp bằng gạch trái mờ. */
+  .sr-problem {
+    font-size: var(--fs-lead);
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    margin: 0 0 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid hsl(var(--primary) / 0.3);
+    max-width: 46ch;
+  }
+
+  .sr-points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+  .sr-points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: hsl(var(--foreground) / 0.9);
+  }
+  .sr-points svg {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    fill: none;
+    stroke: hsl(var(--primary));
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .sr-channels {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .sr-channels li {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.7);
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--shape-pill);
+  }
+
+  /* ── Cột ảnh ────────────────────────────────────────────────── */
+  .sr-frame {
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--border) / 0.8);
+    background: hsl(var(--card));
+    box-shadow: var(--elev-2);
+    overflow: hidden;
+  }
+  .sr-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Slot cho bài toán chưa có ảnh thật (ContentAI): nói thẳng là "sắp ra mắt",
+     không dựng giao diện giả. Nền chấm giống ecs-slot ở EcosystemShowcase. */
+  .sr-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--shape-card);
+    border: 1px dashed hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+    background:
+      radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px) 0 0 /
+        18px 18px,
+      hsl(var(--muted) / 0.4);
+  }
+  .sr-slot-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+    border: 1px solid hsl(var(--primary) / 0.2);
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────── */
+  @media (max-width: 860px) {
+    .sr-row {
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+    /* Một cột: ảnh LUÔN nằm trên chữ, bỏ đảo cột của hàng chẵn. */
+    .sr-row .sr-media {
+      order: -1;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .sr-section {
+      padding: 3.5rem 0;
+    }
+    .sr-problem {
+      max-width: none;
+    }
+  }
+</style>

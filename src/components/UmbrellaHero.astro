@@ -1,0 +1,608 @@
+---
+// ── UMBRELLA HERO (VarenoAI) — Split editorial + draggable arc wheel ─────
+//
+// Bố cục mượn từ hero của tasteskill.dev: cột CHỮ căn trái + một cụm ảnh sản
+// phẩm bên phải xếp theo MỘT CUNG TRÒN (bánh xe). Cụm ảnh tự trôi chậm dọc theo
+// cung; người dùng có thể CẦM–KÉO để xoay cả cụm (có quán tính), thả ra thì nó
+// tiếp tục trôi theo cung. Thẻ ở "phía trước" (đáy cung) to & rõ, thẻ ở "phía
+// sau" (đỉnh cung) nhỏ & mờ dần — tạo chiều sâu. Trên mobile, cụm này thay bằng
+// một dải marquee cuộn ngang.
+//
+// Giữ bản sắc VarenoAI, KHÔNG bê nguyên tasteskill:
+//  1. Màu + kiểu chữ là của website (nền --background, quầng --primary xanh,
+//     Google Sans / Roboto), không phải nền đá ấm + serif của họ.
+//  2. Tiêu đề vẫn có Ô XOAY CHỮ theo lĩnh vực sản phẩm (kinetic).
+//  3. Không cài `motion`/thư viện physics. Bánh xe là vanilla JS: một vòng rAF
+//     ghi thẳng transform, kéo bằng Pointer Events + quán tính tự viết. Hero
+//     (phần tử LCP) vẫn là HTML tĩnh, chỉ tăng cường sau khi tải, và TẮT hoàn
+//     toàn phần tự trôi/kéo khi prefers-reduced-motion (xếp cung tĩnh).
+
+// Ảnh cho các thẻ trên bánh xe (và cho marquee ở mobile).
+import OrbitCluster from "./OrbitCluster.tsx";
+// Mascot Veno (bản -sm 760px: ảnh gốc ~1085px thu nhỏ + xoay sẽ răng cưa như bug
+// collage — xem memory). PNG nền TRONG SUỐT → OrbitCluster chạy chế độ floating
+// (bỏ khung thẻ) để nhân vật trôi tự do thay vì nằm trong hộp trắng.
+import mascot7 from "../assets/Veno-mascot-7-Photoroom-sm.png";
+import mascot2 from "../assets/Veno-mascot-2-Photoroom-sm.png";
+import mascot16 from "../assets/Veno-mascot-16-Photoroom-sm.png";
+import mascot4 from "../assets/Veno-mascot-4-Photoroom-sm.png";
+import mascot20 from "../assets/Veno-mascot-20-Photoroom-sm.png";
+import mascot5 from "../assets/Veno-mascot-5-Photoroom-sm.png";
+import mascot21 from "../assets/Veno-mascot-21-Photoroom-sm.png";
+import mascot6 from "../assets/Veno-mascot-6-Photoroom-sm.png";
+import mascot27 from "../assets/Veno-mascot-27-Photoroom-sm.png";
+
+// CỐ Ý dùng <img> thay vì <Image> của astro:assets: astro.config.mjs bật
+// vercel({ imageService: true }), khiến /_image trả "500 Invalid endpoint" khi
+// chạy `astro dev`. Import tĩnh vẫn cho src đã băm + width/height thật.
+
+interface Props {
+  badgeText: string;
+  titleLead: string;
+  rotatingWords: string[];
+  subtitle: string;
+  imageAlt: string;
+  btn1Text: string;
+  btn1Link: string;
+  btn2Text: string;
+  btn2Link: string;
+  /** Năng lực nền tảng; phần tử đầu hiện thành nhãn nổi trên thẻ ảnh chính. */
+  chips: string[];
+}
+
+const {
+  badgeText,
+  titleLead,
+  rotatingWords,
+  subtitle,
+  imageAlt,
+  btn1Text,
+  btn1Link,
+  btn2Text,
+  btn2Link,
+  chips,
+} = Astro.props;
+
+// Mascot trên bánh xe. Nền trong suốt → KHÔNG dùng badge (chip ✓ nổi cạnh nhân
+// vật trông lạc lõng). Thứ tự trộn các tư thế để hai tư thế giống nhau không kề.
+// `chips` vẫn nhận từ page nhưng hero mascot không hiện nhãn nổi.
+const wheelShots = [
+  { img: mascot7, alt: imageAlt, badge: "" },
+  { img: mascot2, alt: "", badge: "" },
+  { img: mascot16, alt: "", badge: "" },
+  { img: mascot4, alt: "", badge: "" },
+  { img: mascot20, alt: "", badge: "" },
+  { img: mascot5, alt: "", badge: "" },
+  { img: mascot21, alt: "", badge: "" },
+  { img: mascot6, alt: "", badge: "" },
+  { img: mascot27, alt: "", badge: "" },
+];
+
+// Props cho island React OrbitCluster: chỉ giá trị SERIALIZABLE (src/width/…),
+// không truyền cả ImageMetadata.
+const orbitImages = wheelShots.map((s) => ({
+  src: s.img.src,
+  width: s.img.width,
+  height: s.img.height,
+  alt: s.alt,
+  badge: s.badge,
+}));
+
+const esc = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * Bọc từng ký tự trong <span> để CSS stagger được.
+ * `--i` đếm NGƯỢC (staggerFrom: "last"): ký tự cuối chạy trước.
+ * Khoảng trắng thành &nbsp; vì inline-block làm sập space thường.
+ */
+const charSpans = (text: string) => {
+  const chars = Array.from(text);
+  return chars
+    .map((ch, i) => {
+      const delayIndex = chars.length - 1 - i;
+      const glyph = ch === " " ? "&nbsp;" : esc(ch);
+      return `<span class="uhero-char" style="--i:${delayIndex}">${glyph}</span>`;
+    })
+    .join("");
+};
+---
+
+<section class="uhero">
+  <div class="uhero-bg" aria-hidden="true">
+    <span class="uhero-glow uhero-glow--a"></span>
+    <span class="uhero-glow uhero-glow--b"></span>
+    <span class="uhero-grid"></span>
+  </div>
+
+  <div class="container uhero-inner">
+    {/* ── Cột chữ (trái) ─────────────────────────────── */}
+    <div class="uhero-copy">
+      <p class="uhero-badge">
+        <span class="uhero-badge-dot"></span>
+        {badgeText}
+      </p>
+
+      <h1 class="uhero-title">
+        <span class="uhero-lead">{titleLead}</span>
+        <span
+          class="uhero-rotate"
+          data-rotate
+          data-words={JSON.stringify(rotatingWords)}
+        >
+          <span class="sr-only" data-sr>{rotatingWords[0]}</span>
+          <span
+            class="uhero-word"
+            data-word
+            aria-hidden="true"
+            set:html={charSpans(rotatingWords[0])}
+          />
+        </span>
+      </h1>
+
+      <p class="uhero-subtitle">{subtitle}</p>
+
+      <div class="uhero-actions">
+        <a href={btn1Link} class="uhero-btn uhero-btn--primary">
+          {btn1Text}
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </a>
+        <a href={btn2Link} class="uhero-btn uhero-btn--ghost">{btn2Text}</a>
+      </div>
+    </div>
+
+    {/* ── Cụm ảnh quỹ đạo góc-vuông (phải) — thẻ trôi trên/xuống rồi ra ngoài
+        màn hình; kéo để cuộn dọc theo path (không snap), có quán tính. Island
+        React (GSAP ticker). client:visible: chỉ hydrate khi lọt khung nhìn —
+        hero đầu trang nên nạp gần như tức thì; mobile sân khấu display:none nên
+        KHÔNG hydrate (dùng marquee). */}
+    <div class="uhero-stage" aria-hidden="true">
+      <OrbitCluster
+        client:visible
+        images={orbitImages}
+        bottomAnchorSelector=".uhero-btn--ghost"
+        floating
+      />
+    </div>
+
+    {/* ── Marquee ảnh (mobile) — thay bánh xe khi < 900px ── */}
+    <div class="uhero-marquee" aria-hidden="true">
+      <div class="uhero-marquee-track">
+        {
+          [...wheelShots, ...wheelShots].map((s) => (
+            <div class="uhero-mq-card">
+              <img
+                src={s.img.src}
+                width={s.img.width}
+                height={s.img.height}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .uhero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    /* Full màn hình. `dvh` chứ không `vh`: trên iOS Safari, `vh` bị chốt theo
+       viewport lúc thanh địa chỉ đã thu, nên hero hụt/thừa một dải khi cuộn. */
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 6rem 0 4rem;
+  }
+
+  /* ── Nền ─────────────────────────────────────────── */
+  .uhero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .uhero-grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.05) 1px,
+      transparent 1px
+    );
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(
+      circle at 60% 45%,
+      #000,
+      transparent 72%
+    );
+    mask-image: radial-gradient(circle at 60% 45%, #000, transparent 72%);
+  }
+  .uhero-glow {
+    position: absolute;
+    border-radius: var(--shape-pill);
+    filter: blur(110px);
+    opacity: 0.4;
+    background: hsl(var(--primary) / 0.26);
+  }
+  .uhero-glow--a {
+    width: 40rem;
+    height: 40rem;
+    top: -14rem;
+    left: -10rem;
+  }
+  .uhero-glow--b {
+    width: 36rem;
+    height: 36rem;
+    bottom: -16rem;
+    right: -8rem;
+    opacity: 0.28;
+  }
+
+  /* ── Lưới bố cục: chữ | bánh xe ──────────────────── */
+  .uhero-inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 34rem);
+    align-items: center;
+    gap: clamp(2rem, 4vw, 4.5rem);
+  }
+
+  /* ── Cột chữ (căn trái) ──────────────────────────── */
+  /* z-index cao hơn bánh xe: nếu một thẻ trôi lấn sang trái, nó nằm SAU chữ,
+     chữ luôn đọc được. */
+  .uhero-copy {
+    position: relative;
+    z-index: 2;
+    text-align: left;
+    min-width: 0;
+  }
+
+  .uhero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(6px);
+    padding: 0.375rem 0.75rem 0.375rem 0.625rem;
+    border-radius: var(--shape-pill);
+    margin: 0 0 1.75rem;
+    animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .uhero-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--shape-pill);
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.18);
+  }
+
+  .uhero-title {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(2.5rem, 4.8vw, 3.75rem);
+    font-weight: 700;
+    /* 1.12: chừa chỗ cho dấu thanh dưới của tiếng Việt (ạ ộ ợ ự) trong ô clip. */
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: hsl(var(--foreground));
+    margin: 0 0 1.5rem;
+    text-wrap: balance;
+    animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.08s backwards;
+  }
+
+  /* Ô xoay: mặt nạ để ký tự trượt vào/ra khỏi khung.
+     `width` do JS đặt bằng px + transition ở đây (thay `layout` của motion). */
+  .uhero-rotate {
+    display: inline-flex;
+    overflow: hidden;
+    padding-top: 0.1em;
+    padding-bottom: 0.16em;
+    color: hsl(var(--primary));
+    transition: width 0.38s cubic-bezier(0.65, 0, 0.35, 1) 0.18s;
+  }
+  .uhero-word {
+    display: inline-flex;
+    white-space: pre;
+  }
+
+  /* :global() là BẮT BUỘC: các <span class="uhero-char"> do set:html (server) và
+     innerHTML (client) sinh ra nên KHÔNG mang data-astro-cid-*. Không có
+     :global() thì chữ chỉ bị thay tức thì, không animate. */
+  .uhero-word :global(.uhero-char) {
+    display: inline-block;
+    animation: uhero-char-in 0.52s cubic-bezier(0.34, 1.25, 0.5, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 26ms);
+  }
+  .uhero-word[data-exiting] :global(.uhero-char) {
+    animation: uhero-char-out 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 18ms);
+  }
+  @keyframes uhero-char-in {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes uhero-char-out {
+    from { opacity: 1; transform: none; }
+    to { opacity: 0; transform: translateY(-120%); }
+  }
+
+  .uhero-subtitle {
+    font-family: "Roboto", sans-serif;
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    max-width: 34rem;
+    margin: 0 0 2.25rem;
+    animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.16s backwards;
+  }
+
+  /* ── CTA ─────────────────────────────────────────── */
+  .uhero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.875rem;
+    animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.24s backwards;
+  }
+  .uhero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8125rem 1.625rem;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: var(--shape-btn);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .uhero-btn svg { transition: transform 0.2s ease; }
+  .uhero-btn--primary {
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
+    border: 1px solid transparent;
+    box-shadow: 0 10px 30px -12px hsl(var(--primary) / 0.6);
+  }
+  .uhero-btn--primary:hover {
+    transform: translateY(-2px);
+    background: hsl(var(--primary) / 0.92);
+    box-shadow: 0 14px 34px -10px hsl(var(--primary) / 0.6);
+  }
+  .uhero-btn--primary:hover svg { transform: translateX(3px); }
+  .uhero-btn--primary:active { transform: translateY(0); }
+  .uhero-btn--ghost {
+    color: hsl(var(--foreground));
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(6px);
+    border: 1px solid hsl(var(--border));
+  }
+  .uhero-btn--ghost:hover {
+    border-color: hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.06);
+  }
+  .uhero-btn:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  /* ── Bánh xe ảnh ─────────────────────────────────── */
+  .uhero-stage {
+    position: relative;
+    z-index: 1;
+    isolation: isolate; /* giữ z-index các thẻ trong phạm vi cụm ảnh */
+    min-height: 40rem;
+  }
+  /* Thẻ ảnh do island React OrbitCluster.tsx tự dựng (.orbit-card) + GSAP đặt
+     transform; không cần CSS thẻ ở đây nữa. */
+
+  /* ── Marquee ảnh (mobile) ────────────────────────── */
+  .uhero-marquee {
+    display: none;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+  .uhero-marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 1rem;
+    animation: uhero-marquee 34s linear infinite;
+  }
+  @keyframes uhero-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  /* Mascot nền trong suốt → marquee cũng BỎ khung hộp cho nhân vật trôi tự do
+     (đồng bộ với OrbitCluster floating); hẹp lại vì mascot dọc. */
+  .uhero-mq-card {
+    flex: 0 0 auto;
+    width: 9rem;
+    filter: drop-shadow(0 12px 18px hsl(var(--primary) / 0.18));
+  }
+  .uhero-mq-card img { display: block; width: 100%; height: auto; }
+
+  /* ── Responsive ──────────────────────────────────── */
+  @media (max-width: 1200px) {
+    .uhero-inner { grid-template-columns: 1fr minmax(0, 28rem); }
+  }
+
+  /* Dưới 900px: ẩn cụm ảnh quỹ đạo, thay bằng dải marquee cuộn ngang. */
+  @media (max-width: 899px) {
+    .uhero { padding: 5.5rem 0 3.5rem; }
+    .uhero-inner { grid-template-columns: 1fr; gap: 0; }
+    .uhero-stage { display: none; }
+    .uhero-marquee { display: block; margin-top: 2.75rem; }
+  }
+
+  @media (max-width: 520px) {
+    .uhero-actions { flex-direction: column; width: 100%; }
+    .uhero-btn { width: 100%; }
+    .uhero-mq-card { width: 8rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .uhero-badge,
+    .uhero-title,
+    .uhero-subtitle,
+    .uhero-actions {
+      animation: none;
+    }
+    .uhero-marquee-track { animation: none; }
+    .uhero-word :global(.uhero-char),
+    .uhero-word[data-exiting] :global(.uhero-char) { animation: none; }
+    .uhero-rotate { transition: none; }
+    .uhero-btn,
+    .uhero-btn svg { transition: none; }
+    .uhero-btn--primary:hover { transform: none; }
+    .uhero-btn--primary:hover svg { transform: none; }
+  }
+</style>
+
+<script>
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  // ── Ô xoay chữ ────────────────────────────────────────────────
+  const slot = document.querySelector<HTMLElement>("[data-rotate]");
+  if (slot && !reduceMotion) {
+    const word = slot.querySelector<HTMLElement>("[data-word]");
+    const sr = slot.querySelector<HTMLElement>("[data-sr]");
+    let words: string[] = [];
+    try {
+      words = JSON.parse(slot.dataset.words || "[]");
+    } catch {
+      words = [];
+    }
+
+    if (word && sr && words.length > 1) {
+      const ROTATE_MS = 2800;
+      const OUT_DUR = 300;
+      const OUT_STAGGER = 18;
+
+      const build = (text: string) =>
+        Array.from(text)
+          .map((ch, i, all) => {
+            const glyph = ch === " " ? "&nbsp;" : ch;
+            return `<span class="uhero-char" style="--i:${all.length - 1 - i}">${glyph}</span>`;
+          })
+          .join("");
+
+      const measure = (text: string) => {
+        const ghost = document.createElement("span");
+        ghost.style.cssText =
+          "position:absolute;visibility:hidden;pointer-events:none;white-space:pre;display:inline-flex";
+        ghost.innerHTML = build(text);
+        slot.appendChild(ghost);
+        const w = ghost.getBoundingClientRect().width;
+        ghost.remove();
+        return w;
+      };
+
+      let index = 0;
+      let interval: number | undefined;
+      let fallback: number | undefined;
+      let swapping = false;
+
+      const applyWidth = (px: number) => {
+        slot.style.width = `${px.toFixed(1)}px`;
+      };
+
+      const finish = (nextIdx: number) => {
+        if (!swapping) return;
+        swapping = false;
+        window.clearTimeout(fallback);
+        index = nextIdx;
+        word.innerHTML = build(words[index]);
+        sr.textContent = words[index];
+        word.removeAttribute("data-exiting");
+      };
+
+      const tick = () => {
+        if (swapping) return;
+        swapping = true;
+        const nextIdx = (index + 1) % words.length;
+        applyWidth(measure(words[nextIdx]));
+        word.setAttribute("data-exiting", "");
+        const chars = word.querySelectorAll<HTMLElement>(".uhero-char");
+        const lastToFinish = chars[0];
+        const budget = OUT_DUR + Math.max(0, chars.length - 1) * OUT_STAGGER + 60;
+        fallback = window.setTimeout(() => finish(nextIdx), budget);
+        lastToFinish?.addEventListener("animationend", () => finish(nextIdx), {
+          once: true,
+        });
+      };
+
+      const start = () => {
+        if (interval === undefined) interval = window.setInterval(tick, ROTATE_MS);
+      };
+      const stop = () => {
+        window.clearInterval(interval);
+        interval = undefined;
+        if (swapping) finish((index + 1) % words.length);
+      };
+
+      const initWidth = () => applyWidth(measure(words[index]));
+      if (document.fonts?.status === "loaded") initWidth();
+      else document.fonts?.ready.then(initWidth);
+
+      let resizeTimer: number | undefined;
+      window.addEventListener("resize", () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          const prev = slot.style.transition;
+          slot.style.transition = "none";
+          applyWidth(measure(words[index]));
+          requestAnimationFrame(() => {
+            slot.style.transition = prev;
+          });
+        }, 120);
+      });
+
+      const io = new IntersectionObserver(
+        ([entry]) => (entry.isIntersecting && !document.hidden ? start() : stop()),
+        { threshold: 0.1 },
+      );
+      io.observe(slot);
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) stop();
+      });
+    }
+  }
+
+  // Cụm ảnh quỹ đạo (kéo–thả + hút về cung + tự trôi) nằm ở island React
+  // OrbitCluster.tsx (GSAP), không còn xử lý ở đây nữa.
+</script>

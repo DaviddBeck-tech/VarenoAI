@@ -1,0 +1,229 @@
+---
+import "../styles/global.css";
+import { SITE } from "../config/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang?: string;
+  seo?: {
+    title?: string;
+    description?: string;
+    canonicalUrl?: string;
+    openGraph?: { image?: { url?: string } };
+  } | null;
+}
+
+const { title, description, lang = "vi", seo } = Astro.props;
+
+// ─── SEO values ────────────────────────────────────────────────
+const SITE_URL = SITE.siteUrl;
+
+const finalTitle =
+  seo?.title || title || SITE.brandName;
+const finalDescription =
+  seo?.description ||
+  description ||
+  SITE.tagline.vi;
+
+// Luôn dùng frontend URL, KHÔNG dùng URL từ CMS WordPress
+const canonicalUrl = `${SITE_URL}${Astro.url.pathname}`;
+
+// ─── hreflang ──────────────────────────────────────────────────
+// Chỉ đúng được VÌ slug vi và en giống hệt nhau (xem src/config/nav.ts).
+// `bare` = đường dẫn đã bỏ tiền tố /en.
+const isEn = lang === "en";
+const bare = isEn
+  ? Astro.url.pathname.replace(/^\/en(?=\/|$)/, "") || "/"
+  : Astro.url.pathname;
+const viUrl = `${SITE_URL}${bare}`;
+const enUrl = `${SITE_URL}/en${bare === "/" ? "" : bare}`;
+
+// OG image: lấy từ WordPress nếu có, fallback về ảnh mặc định
+const ogImage = seo?.openGraph?.image?.url || `${SITE_URL}/og-image.png`;
+
+// Widget chat: chỉ nhúng khi có PUBLIC_WIDGET_URL (vd: https://app.example.com)
+const widgetUrl = import.meta.env.PUBLIC_WIDGET_URL;
+const widgetId = import.meta.env.PUBLIC_WIDGET_ID || "cmqaks7cw00ao07nkach9d21d";
+// data-domain phải là hostname trần (vd: app.example.com), không kèm protocol
+const widgetDomain = widgetUrl ? new URL(widgetUrl).host : null;
+const widgetScript = widgetUrl
+  ? `(function () {
+  if (!window.VarenoChat || window.VarenoChat("getState") !== "initialized") {
+    window.VarenoChat = (...args) => {
+      if (!window.VarenoChat.q) {
+        window.VarenoChat.q = [];
+      }
+      window.VarenoChat.q.push(args);
+    };
+    window.VarenoChat = new Proxy(window.VarenoChat, {
+      get(target, prop) {
+        if (prop === "q") {
+          return target.q;
+        }
+        return (...args) => target(prop, ...args);
+      },
+    });
+  }
+  const onLoad = function () {
+    const script = document.createElement("script");
+    script.src = ${JSON.stringify(widgetUrl + "/widget/embed.min.js")};
+    script.id = ${JSON.stringify(widgetId)};
+    script.dataset.domain = ${JSON.stringify(widgetDomain)};
+    document.body.appendChild(script);
+  };
+  if (document.readyState === "complete") {
+    onLoad();
+  } else {
+    window.addEventListener("load", onLoad);
+  }
+})();`
+  : null;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <!-- Theme initialization — MUST run before paint to prevent flash of wrong theme -->
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem("theme");
+        var prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        var theme = stored || (prefersDark ? "dark" : "light");
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{finalTitle}</title>
+    <meta name="description" content={finalDescription} />
+
+    <!-- Canonical URL (luôn trỏ về frontend, không phải CMS) -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph (Facebook, Zalo, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={finalTitle} />
+    <meta property="og:description" content={finalDescription} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={isEn ? "en_US" : "vi_VN"} />
+    <meta property="og:locale:alternate" content={isEn ? "vi_VN" : "en_US"} />
+    <meta property="og:site_name" content={SITE.brandName} />
+
+    <!-- hreflang: vi là bản mặc định (x-default) -->
+    <link rel="alternate" hreflang="vi" href={viUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="x-default" href={viUrl} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={finalTitle} />
+    <meta name="twitter:description" content={finalDescription} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.png" />
+
+    <!-- Font Optimization: Preconnect & Preload -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- Mpreload font chính (Google Sans / Roboto) để tránh chớp giật (FOUT/FOIT) -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      as="style"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <!-- Fallback if JS is disabled -->
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+  </head>
+  <body>
+    <slot />
+
+    <!-- Chat Widget — chỉ nhúng khi cấu hình PUBLIC_WIDGET_URL -->
+    {widgetScript && <script is:inline set:html={widgetScript} />}
+
+    <!-- Google tag (gtag.js) — đặt cuối body để không tranh băng thông với tài nguyên critical -->
+    <script
+      is:inline
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-0X00PHVYED"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-0X00PHVYED");
+    </script>
+
+    <!-- Cuộn mượt quán tính (Lenis) — bundled qua Vite, chỉ bật trên desktop
+         và khi người dùng không chọn "giảm chuyển động" (xem script) -->
+    <script>
+      import "../scripts/smooth-scroll.ts";
+    </script>
+
+    <!-- Intersection Observer Scroll Animations -->
+    <script is:inline>
+      (function () {
+        function initScrollAnimations() {
+          var observerOptions = {
+            root: null,
+            rootMargin: "0px 0px -50px 0px",
+            threshold: 0.05,
+          };
+
+          var observer = new IntersectionObserver(function (entries, obs) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("scroll-animate--visible");
+                obs.unobserve(entry.target);
+              }
+            });
+          }, observerOptions);
+
+          var targets = document.querySelectorAll(
+            "section, .social-proof, footer, .ps-section, .slider-info-section, .privacy-section, .pricing-section, .faq-section"
+          );
+          targets.forEach(function (el, index) {
+            if (!el.classList.contains("scroll-animate")) {
+              el.classList.add("scroll-animate");
+            }
+            // Animate top fold elements immediately
+            if (index === 0 || el.getBoundingClientRect().top < window.innerHeight) {
+              el.classList.add("scroll-animate--visible");
+            } else {
+              observer.observe(el);
+            }
+          });
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initScrollAnimations);
+        } else {
+          initScrollAnimations();
+        }
+
+        document.addEventListener("astro:page-load", initScrollAnimations);
+      })();
+    </script>
+  </body>
+</html>

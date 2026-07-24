@@ -1,0 +1,88 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import PageHero from "../../components/PageHero.astro";
+import AboutStory from "../../components/AboutStory.astro";
+import ValuesSection from "../../components/ValuesSection.astro";
+import EcosystemShowcase from "../../components/EcosystemShowcase.astro";
+import PrivacySection from "../../components/PrivacySection.astro";
+import FounderNote from "../../components/FounderNote.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { SITE } from "../../config/site";
+import { ABOUT } from "../../config/about";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const lang = "en" as const;
+
+const seo = {
+  title: `About — ${SITE.brandName}`,
+  description:
+    "VarenoAI builds AI products made for Vietnamese businesses: native Vietnamese, deployed in hours, no engineering team required.",
+};
+---
+
+<BaseLayout title={seo.title} description={seo.description} lang="en">
+  <Header />
+
+  <PageHero
+    badge={ABOUT.hero.badge[lang]}
+    title={ABOUT.hero.titleLead[lang]}
+    titleHighlight={ABOUT.hero.titleAccent[lang]}
+    subtitle={ABOUT.hero.subtitle[lang]}
+  />
+
+  <AboutStory
+    eyebrow={ABOUT.story.eyebrow[lang]}
+    heading={ABOUT.story.heading[lang]}
+    headingAccent={ABOUT.story.headingAccent[lang]}
+    paragraphs={ABOUT.story.paragraphs[lang].slice()}
+    missionLabel={ABOUT.story.missionLabel[lang]}
+    mission={ABOUT.story.mission[lang]}
+    points={ABOUT.story.points[lang].slice()}
+    stats={ABOUT.story.stats.map((s) => ({
+      value: s.value,
+      label: s.label[lang],
+    }))}
+  />
+
+  <FounderNote
+    eyebrow={ABOUT.letter.eyebrow[lang]}
+    heading={ABOUT.letter.heading[lang]}
+    paragraphs={ABOUT.letter.paragraphs[lang].slice()}
+    signature={ABOUT.letter.signature[lang]}
+    signatureRole={ABOUT.letter.signatureRole[lang]}
+  />
+
+  <ValuesSection
+    title={ABOUT.values.title[lang]}
+    titleAccent={ABOUT.values.titleAccent[lang]}
+    subtitle={ABOUT.values.subtitle[lang]}
+    pillars={ABOUT.values.pillars.map((p) => ({
+      icon: p.icon,
+      title: p.title[lang],
+      desc: p.desc[lang],
+      points: p.points[lang].slice(),
+    }))}
+  />
+
+  <EcosystemShowcase
+    title={ABOUT.ecosystem.title[lang]}
+    subtitle={ABOUT.ecosystem.subtitle[lang]}
+  />
+
+  <PrivacySection
+    title={ABOUT.privacy.title[lang]}
+    description={ABOUT.privacy.description[lang]}
+    linkText={ABOUT.privacy.linkText[lang]}
+    linkUrl="/en/legal/privacy-policy/"
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

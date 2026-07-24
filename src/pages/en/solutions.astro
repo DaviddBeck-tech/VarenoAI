@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import PageHero from "../../components/PageHero.astro";
+import SolutionRows from "../../components/SolutionRows.astro";
+import FeaturesSection from "../../components/FeaturesSection.astro";
+import DeploySteps from "../../components/DeploySteps.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { SITE } from "../../config/site";
+import { NAV } from "../../config/nav";
+import { SOLUTIONS } from "../../config/solutions";
+import { useTranslatedPath } from "../../i18n/utils";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const lang = "en" as const;
+const translatePath = useTranslatedPath(lang);
+
+const seo = {
+  title: `Solutions — ${SITE.brandName}`,
+  description:
+    "AI solutions by problem: sales, customer support, lead capture and content production — on one platform.",
+};
+
+const rows = SOLUTIONS.rows.map((r) => ({
+  product: r.product,
+  icon: r.icon,
+  imageKey: r.imageKey,
+  title: r.title[lang],
+  problem: r.problem[lang],
+  points: r.points[lang].slice(),
+  channels: r.channels ? r.channels.slice() : undefined,
+  badge: r.badge ? r.badge[lang] : null,
+  imageAlt: r.imageAlt ? r.imageAlt[lang] : null,
+}));
+
+const steps = SOLUTIONS.deploy.steps.map((s) => ({
+  title: s.title[lang],
+  desc: s.desc[lang],
+}));
+---
+
+<BaseLayout title={seo.title} description={seo.description} lang="en">
+  <Header />
+
+  <PageHero
+    badge={SOLUTIONS.hero.badge[lang]}
+    title={SOLUTIONS.hero.titleLead[lang]}
+    titleHighlight={SOLUTIONS.hero.titleAccent[lang]}
+    subtitle={SOLUTIONS.hero.subtitle[lang]}
+  />
+
+  <SolutionRows
+    eyebrow={SOLUTIONS.rowsHead.eyebrow[lang]}
+    heading={SOLUTIONS.rowsHead.heading[lang]}
+    subheading={SOLUTIONS.rowsHead.subheading[lang]}
+    rows={rows}
+  />
+
+  <FeaturesSection
+    badge={SOLUTIONS.capabilities.badge[lang]}
+    title={SOLUTIONS.capabilities.title[lang]}
+    titleHighlight={SOLUTIONS.capabilities.titleAccent[lang]}
+    description={SOLUTIONS.capabilities.description[lang]}
+    button1Text="Talk to us"
+    button1Url={translatePath(NAV.contact)}
+    button2Text="See products"
+    button2Url={translatePath(NAV.services)}
+  />
+
+  <DeploySteps
+    eyebrow={SOLUTIONS.deploy.eyebrow[lang]}
+    heading={SOLUTIONS.deploy.heading[lang]}
+    subheading={SOLUTIONS.deploy.subheading[lang]}
+    steps={steps}
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

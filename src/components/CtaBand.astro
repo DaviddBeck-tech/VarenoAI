@@ -1,0 +1,312 @@
+---
+// Dải CTA đóng trang — thay chỗ của PricingSection trên các trang
+// không có bảng giá (umbrella, /services/, /about/, /solutions/, /contentai/).
+//
+// Thiết kế: panel gradient XANH THƯƠNG HIỆU tối (một "khối thương hiệu" cố ý,
+// luôn tối + chữ trắng ở cả light/dark — giống footer CTA của phần lớn SaaS).
+// Nội dung: tiêu đề + email/điện thoại/địa chỉ (từ src/config/site.ts) + nút.
+import { NAV } from "../config/nav";
+import { SITE } from "../config/site";
+import CtaGlobe from "./CtaGlobe";
+import {
+  getLangFromUrl,
+  useTranslations,
+  useTranslatedPath,
+} from "../i18n/utils";
+
+interface Props {
+  title?: string | null;
+  subtitle?: string | null;
+  buttonLabel?: string | null;
+  buttonHref?: string | null;
+  /** Ghi đè thông tin liên hệ; mặc định lấy từ src/config/site.ts. Truyền
+      chuỗi rỗng "" để ẩn từng dòng. */
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+}
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+
+const {
+  title = t("cta.title"),
+  subtitle = t("cta.subtitle"),
+  buttonLabel = t("cta.button"),
+  buttonHref = translatePath(NAV.contact),
+  email = SITE.contactEmail,
+  phone = SITE.contactPhone,
+  address = SITE.contactAddress,
+} = Astro.props;
+
+// tel: dùng SỐ ĐẦU TIÊN, chỉ giữ chữ số và dấu +.
+const firstPhone = phone ? phone.split("/")[0].trim() : "";
+const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
+---
+
+<section class="cta-band">
+  <div class="container">
+    <div class="cta-inner">
+      {/* Quả cầu trang trí: tràn ra khỏi góc trên-phải, chỉ hiện ~2/3 trong card.
+          client:visible → chỉ tải WebGL khi cuộn tới (section này dưới màn đầu). */}
+      <div class="cta-globe" aria-hidden="true">
+        <CtaGlobe client:visible />
+      </div>
+
+      <div class="cta-content">
+        <h2 class="cta-title">{title}</h2>
+        {subtitle && <p class="cta-subtitle">{subtitle}</p>}
+
+        <ul class="cta-contacts">
+          {
+            email && (
+              <li>
+                <a href={`mailto:${email}`}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect width="20" height="16" x="2" y="4" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                  <span>{email}</span>
+                </a>
+              </li>
+            )
+          }
+          {
+            phone && (
+              <li>
+                <a href={telHref}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  <span>{phone}</span>
+                </a>
+              </li>
+            )
+          }
+          {
+            address && (
+              <li>
+                <span class="cta-contact-static">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span>{address}</span>
+                </span>
+              </li>
+            )
+          }
+        </ul>
+
+        <a href={buttonHref} class="cta-button">
+          {buttonLabel}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </a>
+      </div>
+
+      {/* Lớp trang trí: watermark thương hiệu mờ, không cản chuột */}
+      <div class="cta-decor" aria-hidden="true">
+        <span class="cta-watermark">{SITE.brandName}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-band {
+    padding: 4rem 0 5rem;
+  }
+
+  .cta-inner {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding: clamp(2rem, 5vw, 3.75rem);
+    border-radius: 1.5rem;
+    border: 1px solid hsl(var(--primary) / 0.16);
+    /* Nền GIỐNG HERO: nền website (--background) phủ HAI quầng xanh --primary mềm
+       ở góc trên-trái và dưới-phải — đúng bố cục quầng của hero. Tự sáng/tối theo
+       theme. KHÔNG có lưới kẻ ô. */
+    background:
+      radial-gradient(
+        60% 130% at 2% 0%,
+        hsl(var(--primary) / 0.18) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        55% 130% at 100% 100%,
+        hsl(var(--primary) / 0.14) 0%,
+        transparent 58%
+      ),
+      hsl(var(--background));
+    box-shadow: 0 26px 60px -40px hsl(var(--primary) / 0.3);
+  }
+
+  .cta-decor {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .cta-watermark {
+    position: absolute;
+    right: clamp(-0.5rem, 2vw, 2rem);
+    bottom: -0.32em;
+    font-family: "Google Sans", sans-serif;
+    font-weight: 700;
+    font-size: clamp(3.5rem, 12vw, 8rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: hsl(var(--foreground) / 0.05);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* Quả cầu neo ở góc trên-phải, tràn ra ngoài cho cảm giác "cắt khung".
+     z-index:0 → trên nền + watermark(-1) nhưng dưới nội dung(1). */
+  .cta-globe {
+    position: absolute;
+    z-index: 0;
+    top: clamp(-15rem, -15vw, -10rem);
+    right: clamp(-7rem, -6vw, -3rem);
+    width: clamp(18rem, 46vw, 37rem);
+    aspect-ratio: 1 / 1;
+    pointer-events: none;
+  }
+
+  .cta-content {
+    position: relative;
+    z-index: 1;
+    max-width: 42rem;
+  }
+
+  .cta-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: hsl(var(--foreground));
+    margin: 0;
+  }
+
+  .cta-subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+    margin: 0.75rem 0 0;
+    max-width: 34rem;
+  }
+
+  .cta-contacts {
+    list-style: none;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .cta-contacts a,
+  .cta-contact-static {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    color: hsl(var(--foreground) / 0.85);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .cta-contacts a:hover {
+    color: hsl(var(--foreground));
+  }
+  .cta-contacts svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: hsl(var(--primary)); /* icon xanh thương hiệu */
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 0.9rem 1.85rem;
+    border-radius: 0.875rem;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary));
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px -12px hsl(var(--primary) / 0.6);
+  }
+  .cta-button:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  .cta-button svg {
+    transition: transform 0.2s ease;
+  }
+  .cta-button:hover svg {
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 768px) {
+    /* Thu nhỏ và đẩy sâu vào góc để không lấn phần chữ khi card hẹp lại. */
+    .cta-globe {
+      width: 17rem;
+      top: -4.5rem;
+      right: -5.5rem;
+      opacity: 0.6;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cta-inner {
+      padding: 1.75rem 1.5rem;
+      border-radius: 1.25rem;
+    }
+    .cta-watermark {
+      font-size: 4rem;
+    }
+    /* Màn rất hẹp: chữ chiếm trọn bề ngang → bỏ quả cầu cho dễ đọc. */
+    .cta-globe {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-button,
+    .cta-button svg,
+    .cta-contacts a {
+      transition: none;
+    }
+    .cta-button:hover {
+      transform: none;
+    }
+    .cta-button:hover svg {
+      transform: none;
+    }
+  }
+</style>

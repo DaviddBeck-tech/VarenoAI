@@ -1,0 +1,1181 @@
+---
+import ThemeToggle from "./ThemeToggle.tsx";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
+import ProductIcon from "./ProductIcon.astro";
+// Logo lockup mới (PNG có alpha). Hai bản đổi theo theme vì bản sáng có chữ tối
+// (chìm trên nền dark). Bản -dark có chữ trắng, icon nhiều màu giữ nguyên — thay
+// cho cơ chế recolor .st1 của logo.svg cũ. Xem CSS swap theo html.dark bên dưới.
+import logoLight from "../assets/logo-vareno-ai.png";
+import logoDark from "../assets/logo-vareno-ai-dark.png";
+import { SITE } from "../config/site";
+import { NAV } from "../config/nav";
+import { navProducts, productPath } from "../config/products";
+import {
+  getLangFromUrl,
+  useTranslations,
+  useTranslatedPath,
+} from "../i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+
+// So khớp trạng thái active: chuẩn hoá dấu / ở cuối.
+// translatePath("/") trả về "/en" (không có / cuối) trong khi pathname là "/en/".
+const norm = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const currentPath = norm(Astro.url.pathname);
+const isActive = (href: string) => norm(href) === currentPath;
+
+const serviceChildren = navProducts().map((p) => ({
+  name: p.name,
+  label: p.shortLabel ?? p.name,
+  href: translatePath(productPath(p)),
+  tagline: p.tagline[lang],
+  icon: p.icon,
+  status: p.status,
+  badge: p.badge?.[lang],
+}));
+
+/**
+ * Số cột của mega-menu, suy ra từ số sản phẩm — thêm sản phẩm KHÔNG phải sửa CSS.
+ * 2→2, 3→3, 4→4, 5→3(3+2), 6→3(3+3), 7+→4.
+ * Chặn ở 4 để 6 sản phẩm không thành một dải 6 cột mỏng dính trên màn rộng.
+ */
+const menuCols =
+  serviceChildren.length <= 4
+    ? serviceChildren.length
+    : serviceChildren.length <= 6
+      ? 3
+      : 4;
+
+// {brand} nằm trong chuỗi i18n để đổi thương hiệu vẫn chỉ sửa src/config/site.ts
+const platformTitle = t("nav.ecosystemTitle").replace(
+  "{brand}",
+  SITE.brandName,
+);
+
+const navItems = [
+  { key: "home", label: t("nav.home"), href: translatePath(NAV.home) },
+  {
+    key: "services",
+    label: t("nav.services"),
+    href: translatePath(NAV.services),
+    children: serviceChildren,
+  },
+  { key: "about", label: t("nav.about"), href: translatePath(NAV.about) },
+  {
+    key: "solutions",
+    label: t("nav.solutions"),
+    href: translatePath(NAV.solutions),
+  },
+  { key: "news", label: t("nav.news"), href: translatePath(NAV.news) },
+  { key: "contact", label: t("nav.contact"), href: translatePath(NAV.contact) },
+];
+---
+
+<nav class="header-nav" id="main-header">
+  <div class="header-inner">
+    <!-- Logo -->
+    <a
+      href={translatePath(NAV.home)}
+      class="header-logo"
+      aria-label={`${SITE.brandName} Home`}
+    >
+      <img
+        class="header-logo-img header-logo-img--light"
+        src={logoLight.src}
+        width={logoLight.width}
+        height={logoLight.height}
+        alt=""
+        decoding="async"
+      />
+      <img
+        class="header-logo-img header-logo-img--dark"
+        src={logoDark.src}
+        width={logoDark.width}
+        height={logoDark.height}
+        alt=""
+        aria-hidden="true"
+        decoding="async"
+      />
+    </a>
+
+    <!-- Desktop Nav Links -->
+    <div class="header-links">
+      {
+        navItems.map((item) =>
+          item.children ? (
+            <div class="nav-item nav-item--menu">
+              {/* Nhãn là <a> thật: "Dịch vụ" phải điều hướng được tới /services/ */}
+              <a
+                href={item.href}
+                class="header-link"
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+
+              {/* Caret là <button> riêng: đây là điểm chạm trên mobile/touch,
+                  nơi không tồn tại hover. Mẫu W3C APG Disclosure Navigation. */}
+              <button
+                type="button"
+                class="nav-caret"
+                aria-expanded="false"
+                aria-controls={`dd-${item.key}`}
+                aria-label={t("nav.servicesToggle")}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="14"
+                  height="14"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {/* Panel full-bleed: `position:absolute` neo vào .header-nav (đã
+                  fixed, left:0 right:0). CỐ Ý không dùng position:fixed —
+                  backdrop-filter trên .header-nav.scrolled sẽ biến header thành
+                  containing block và panel fixed sẽ neo sai. */}
+              <div
+                class="mega-panel"
+                id={`dd-${item.key}`}
+                role="group"
+                aria-label={item.label}
+              >
+                <div class="mega-inner">
+                  <ul
+                    class="mega-grid"
+                    role="list"
+                    style={`--mm-cols:${menuCols}`}
+                  >
+                    {item.children.map((c, i) => (
+                      <li>
+                        {/* --i nuôi transition-delay ⇒ thẻ hiện lần lượt.
+                            Thêm sản phẩm là tự có bậc stagger, không sửa CSS. */}
+                        <a
+                          href={c.href}
+                          class="mm-card"
+                          data-status={c.status}
+                          style={`--i:${i}`}
+                        >
+                          <span class="mm-card-icon">
+                            <ProductIcon name={c.icon} size={22} />
+                          </span>
+                          <span class="mm-card-body">
+                            <span class="mm-card-name">
+                              {c.label}
+                              {c.badge ? (
+                                <em class="ndi-soon">{c.badge}</em>
+                              ) : (
+                                c.status === "coming-soon" && (
+                                  <em class="ndi-soon">
+                                    {t("products.comingSoon")}
+                                  </em>
+                                )
+                              )}
+                            </span>
+                            <span class="mm-card-tagline">{c.tagline}</span>
+                          </span>
+                          <svg
+                            class="mm-card-arrow"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                          </svg>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Dải chân vào sau thẻ cuối cùng */}
+                  <div class="mega-foot" style={`--i:${item.children.length}`}>
+                    <p class="mega-foot-copy">
+                      <strong>{platformTitle}</strong>
+                      <span>{t("nav.ecosystemBlurb")}</span>
+                    </p>
+                    <a href={item.href} class="mega-foot-link">
+                      {t("nav.servicesAll")}
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class="header-link"
+              aria-current={isActive(item.href) ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ),
+        )
+      }
+    </div>
+
+    <!-- Desktop Right Actions -->
+    <div class="header-actions">
+      <LanguageSwitcher />
+      <ThemeToggle client:idle />
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button
+      class="header-mobile-btn"
+      id="mobile-menu-btn"
+      aria-label="Toggle mobile menu"
+    >
+      <svg
+        id="icon-menu"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        ><line x1="4" x2="20" y1="12" y2="12"></line><line
+          x1="4"
+          x2="20"
+          y1="6"
+          y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg
+      >
+      <svg
+        id="icon-close"
+        class="hidden"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        ><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg
+      >
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="header-mobile-menu hidden">
+    <div class="header-mobile-inner">
+      {
+        navItems.map((item) =>
+          item.children ? (
+            <div class="mobile-group" data-open="false">
+              <div class="mobile-group-row">
+                {/* CÓ .mobile-link → tap nhãn thì điều hướng và đóng menu (đúng ý) */}
+                <a href={item.href} class="header-mobile-link mobile-link">
+                  {item.label}
+                </a>
+                {/* KHÔNG có .mobile-link → tap caret chỉ mở accordion, menu không đóng */}
+                <button
+                  type="button"
+                  class="mobile-accordion-btn"
+                  aria-expanded="false"
+                  aria-controls={`m-${item.key}`}
+                  aria-label={t("nav.servicesToggle")}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="mobile-group-panel" id={`m-${item.key}`}>
+                <div class="mobile-group-panel-inner">
+                  {item.children.map((c) => (
+                    <a href={c.href} class="header-mobile-sublink mobile-link">
+                      <span class="hms-icon">
+                        <ProductIcon name={c.icon} size={16} />
+                      </span>
+                      <span class="hms-text">
+                        <span class="hms-name">
+                          {c.label}
+                          {c.badge ? (
+                            <em class="ndi-soon">{c.badge}</em>
+                          ) : (
+                            c.status === "coming-soon" && (
+                              <em class="ndi-soon">
+                                {t("products.comingSoon")}
+                              </em>
+                            )
+                          )}
+                        </span>
+                        <span class="hms-tagline">{c.tagline}</span>
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <a href={item.href} class="header-mobile-link mobile-link">
+              {item.label}
+            </a>
+          ),
+        )
+      }
+
+      <div class="header-mobile-divider"></div>
+      <div class="header-mobile-utils">
+        <div class="header-mobile-util-group">
+          <span class="header-mobile-util-label">Theme:</span>
+          <ThemeToggle client:idle />
+        </div>
+        <div class="header-mobile-util-group">
+          <LanguageSwitcher />
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* ── Header Base ──────────────────────────────────────────── */
+  .header-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background-color: hsl(var(--background));
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .header-nav.scrolled {
+    background: hsl(var(--background) / 0.7);
+    backdrop-filter: blur(20px);
+  }
+
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  /* ── Logo ─────────────────────────────────────────────────── */
+  .header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .header-logo-img {
+    display: block;
+    height: 2rem;
+    width: auto;
+    transition: opacity 0.2s ease;
+  }
+
+  .header-logo:hover .header-logo-img {
+    opacity: 0.8;
+  }
+
+  /* Swap bản logo theo theme (html.dark do BaseLayout/ThemeToggle gắn). */
+  .header-logo-img--dark {
+    display: none;
+  }
+  :global(html.dark) .header-logo-img--light {
+    display: none;
+  }
+  :global(html.dark) .header-logo-img--dark {
+    display: block;
+  }
+
+  /* ── Desktop Nav Links ───────────────────────────────────── */
+  /* Breakpoint nâng 768px → 1024px: 6 mục không vừa chỗ mà 4 mục từng vừa. */
+  .header-links {
+    display: none;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .header-links {
+      display: flex;
+    }
+  }
+
+  .header-link {
+    position: relative;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    text-decoration: none;
+    padding: 0.25rem 0;
+    white-space: nowrap;
+    transition: color 0.25s ease;
+  }
+
+  .header-link::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      hsl(var(--primary)),
+      hsl(var(--accent))
+    );
+    border-radius: 1px;
+    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .header-link:hover,
+  .header-link[aria-current="page"] {
+    color: hsl(var(--foreground));
+  }
+
+  .header-link:hover::after,
+  .header-link[aria-current="page"]::after {
+    width: 100%;
+  }
+
+  /* ── Mega-menu "Dịch vụ" (desktop) ───────────────────────── */
+  /* CỐ Ý `position: static` (trước đây là relative): containing block của
+     .mega-panel phải leo lên tới .header-nav (đã position:fixed, left:0
+     right:0) thì panel mới trải hết chiều ngang viewport. Mọi selector
+     `:hover >` và `[data-open]` vẫn chạy vì chúng dựa vào quan hệ DOM,
+     không phải positioning context. */
+  .nav-item {
+    position: static;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    /* Khớp chiều cao header: nếu chỉ cao bằng chữ, sẽ có "vùng chết"
+       ~22px giữa nhãn và panel làm menu tắt khi rê chuột xuống. */
+    height: 64px;
+  }
+
+  /* ── Công tắc mở/đóng: MỘT biến, ba nguồn ─────────────────────
+     `--mm` (0 = đóng, 1 = mở) là công tắc DUY NHẤT. Panel, thẻ, dải chân và
+     mũi tên caret đều đọc nó, nên mỗi nguồn mở chỉ phải lật một biến thay vì
+     chép lại toàn bộ khai báo. Đổi `opacity: var(--mm)` làm giá trị tính toán
+     của opacity thay đổi ⇒ transition trên opacity vẫn chạy bình thường.
+
+     Mở và đóng CỐ Ý không đối xứng. Đóng bằng chính animation của lúc mở phát
+     ngược lại luôn cho cảm giác lag, nên đóng ngắn hơn và ease-in (rời đi dứt
+     khoát), còn mở dài hơn và ease-out (nội dung hạ xuống rồi lắng lại). */
+  .nav-item--menu {
+    --mm: 0;
+    --mm-vis: hidden;
+    --mm-ease: cubic-bezier(0.4, 0, 1, 1); /* ease-in */
+    --mm-fade: 0.15s; /* opacity của panel */
+    --mm-cfade: 0.15s; /* opacity của thẻ */
+    --mm-cslide: 0.15s; /* translate của thẻ */
+    --mm-stagger: 0ms; /* KHÔNG stagger lúc đóng: mọi thẻ tắt cùng lúc */
+    --mm-hide: 0.15s; /* visibility đợi fade xong mới ẩn */
+  }
+
+  /* Nhánh do JS điều khiển (hover-intent, click caret, ArrowDown).
+     Đây là nhánh DUY NHẤT có choreography đầy đủ. */
+  .nav-item--menu[data-open="true"] {
+    --mm: 1;
+    --mm-vis: visible;
+    --mm-ease: cubic-bezier(0.16, 1, 0.3, 1); /* easeOutExpo */
+    --mm-fade: 0.24s;
+    --mm-cfade: 0.28s;
+    --mm-cslide: 0.42s;
+    --mm-stagger: 34ms;
+    --mm-hide: 0s; /* hiện ngay, không chờ */
+  }
+
+  /* Fallback khi JS chưa chạy. Chỉ hiện panel, KHÔNG kèm choreography: giữ
+     nguyên bộ thời lượng ngắn ở trên. Script khởi động sẽ set data-open="false"
+     và tự vô hiệu hai nhánh này — nếu không, Escape không đóng được vì focus
+     vẫn nằm trong menu và :focus-within mở lại ngay. */
+  .nav-item--menu:not([data-open]):focus-within {
+    --mm: 1;
+    --mm-vis: visible;
+    --mm-hide: 0s;
+  }
+
+  /* @media (hover:hover) chặn lỗi iOS "tap đầu chỉ để hover" */
+  @media (hover: hover) and (pointer: fine) {
+    .nav-item--menu:not([data-open]):hover {
+      --mm: 1;
+      --mm-vis: visible;
+      --mm-hide: 0s;
+    }
+  }
+
+  .nav-caret {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: 0;
+    padding: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .nav-caret:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .nav-caret svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transform: rotate(calc(var(--mm) * 180deg));
+    transition: transform var(--mm-fade) var(--mm-ease);
+  }
+
+  /* Panel trải hết viewport: neo vào .header-nav, KHÔNG dùng 100vw (100vw tính
+     cả thanh cuộn ⇒ tràn ngang trên iOS). `top:100%` dán sát đáy header nên
+     không còn "vùng chết" giữa nhãn và panel. */
+  /* Panel CHỈ mờ dần, KHÔNG trượt. Trước đây nó `translateY(-6px)` lúc đóng,
+     tức mép trên nằm đè 6px lên header — mà panel là z-index:60 còn
+     .header-inner không được định vị, nên viền trên của panel vẽ chồng lên
+     header trong lúc trượt. Chuyển toàn bộ chuyển động xuống cho .mm-card:
+     nội dung "hạ xuống" mới là thứ mắt đọc ra, còn dải nền chỉ cần hiện lên. */
+  .mega-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    opacity: var(--mm);
+    visibility: var(--mm-vis);
+    transition:
+      opacity var(--mm-fade) var(--mm-ease),
+      visibility 0s linear var(--mm-hide);
+    /* Header là z-index:50 */
+    z-index: 60;
+    /* Nền phải ĐỤC: .header-nav.scrolled có backdrop-filter */
+    background: hsl(var(--background));
+    border-top: 1px solid hsl(var(--border) / 0.6);
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: var(--elev-2);
+  }
+
+  /* Căn theo đúng .header-inner để thẻ thẳng hàng với nội dung trang */
+  .mega-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.25rem 2rem 1rem;
+  }
+
+  .mega-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+    /* --mm-cols do frontmatter tính từ số sản phẩm */
+    grid-template-columns: repeat(var(--mm-cols, 2), minmax(0, 1fr));
+    /* Trần theo SỐ cột: 2 sản phẩm không bị kéo giãn hết 1400px (mũi tên trôi
+       ra mép, thẻ rỗng ruột), mà vẫn tự nở tới hết container khi có 4 sản phẩm. */
+    max-width: min(100%, calc(var(--mm-cols, 2) * 26rem));
+  }
+
+  /* Desktop hẹp: không bao giờ quá 2 cột để thẻ còn đọc được */
+  @media (max-width: 1200px) {
+    .mega-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ── Thẻ sản phẩm trong mega-menu ────────────────────────── */
+  /* Thẻ hạ xuống 8px và mờ dần, lệch pha nhau --mm-stagger. Lúc đóng
+     --mm-stagger về 0 nên tất cả tắt cùng lúc: stagger phát ngược trông như
+     menu bị kẹt. Hover giữ thời lượng cố định 0.18s, không dính vào --mm-*. */
+  .mm-card {
+    --mm-delay: calc(var(--i, 0) * var(--mm-stagger));
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 0.875rem;
+    border: 1px solid hsl(var(--border) / 0.5);
+    border-radius: var(--shape-btn);
+    text-decoration: none;
+    opacity: var(--mm);
+    transform: translateY(calc((var(--mm) - 1) * 8px));
+    transition:
+      opacity var(--mm-cfade) var(--mm-ease) var(--mm-delay),
+      transform var(--mm-cslide) var(--mm-ease) var(--mm-delay),
+      border-color 0.18s ease,
+      background 0.18s ease;
+  }
+
+  .mm-card:hover {
+    border-color: hsl(var(--primary) / 0.45);
+    background: hsl(var(--primary) / 0.04);
+  }
+
+  .mm-card:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .mm-card:hover .mm-card-arrow {
+    transform: translateX(3px);
+    color: hsl(var(--primary));
+  }
+
+  .mm-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  /* Sản phẩm chưa ra mắt: tắt màu thương hiệu, vẫn bấm được (trang đã tồn tại) */
+  .mm-card[data-status="coming-soon"] .mm-card-icon {
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted));
+  }
+
+  .mm-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1875rem;
+    min-width: 0;
+  }
+
+  .mm-card-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: "Google Sans", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .mm-card-tagline {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .mm-card-arrow {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: hsl(var(--muted-foreground) / 0.6);
+    margin-top: 0.625rem;
+    transition:
+      transform 0.18s ease,
+      color 0.18s ease;
+  }
+
+  /* ── Dải chân panel: thông điệp "một nền tảng" + link xem tất cả ─ */
+  .mega-foot {
+    /* --i = số thẻ ⇒ dải chân luôn vào sau thẻ cuối cùng, kể cả khi
+       thêm sản phẩm mới */
+    --mm-delay: calc(var(--i, 0) * var(--mm-stagger));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid hsl(var(--border) / 0.6);
+    opacity: var(--mm);
+    transform: translateY(calc((var(--mm) - 1) * 8px));
+    transition:
+      opacity var(--mm-cfade) var(--mm-ease) var(--mm-delay),
+      transform var(--mm-cslide) var(--mm-ease) var(--mm-delay);
+  }
+
+  .mega-foot-copy {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.8125rem;
+  }
+
+  .mega-foot-copy strong {
+    font-family: "Google Sans", sans-serif;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .mega-foot-copy span {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .mega-foot-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(var(--primary));
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .mega-foot-link svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.18s ease;
+  }
+
+  .mega-foot-link:hover svg {
+    transform: translateX(3px);
+  }
+
+  .mega-foot-link:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .ndi-soon {
+    font-style: normal;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted));
+    border: 1px solid hsl(var(--border) / 0.8);
+    padding: 0.125rem 0.4375rem;
+    border-radius: 999px;
+  }
+
+  /* ── Desktop Right Actions ───────────────────────────────── */
+  .header-actions {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 1024px) {
+    .header-actions {
+      display: flex;
+    }
+  }
+
+  /* ── Mobile Menu Button ──────────────────────────────────── */
+  .header-mobile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    transition: background 0.2s ease;
+  }
+
+  .header-mobile-btn:hover {
+    background: hsl(var(--muted) / 0.5);
+  }
+
+  @media (min-width: 1024px) {
+    .header-mobile-btn {
+      display: none;
+    }
+  }
+
+  /* ── Mobile Menu ─────────────────────────────────────────── */
+  .header-mobile-menu {
+    border-top: 1px solid hsl(var(--foreground) / 0.06);
+    background: hsl(var(--background) / 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    overflow: hidden;
+  }
+
+  .header-mobile-menu.hidden {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .header-mobile-menu {
+      display: none !important;
+    }
+  }
+
+  .header-mobile-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .header-mobile-link {
+    font-family: "Roboto", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    text-decoration: none;
+    padding: 0.75rem 0;
+    transition: color 0.2s ease;
+    border-bottom: 1px solid hsl(var(--foreground) / 0.04);
+  }
+
+  .header-mobile-link:hover {
+    color: hsl(var(--foreground));
+  }
+
+  /* Phải giới hạn ở con TRỰC TIẾP: <a> bên trong .mobile-group-row là
+     <a> duy nhất của hàng đó nên :last-of-type sẽ khớp và mất đường kẻ. */
+  .header-mobile-inner > .header-mobile-link:last-of-type {
+    border-bottom: none;
+  }
+
+  /* ── Mobile accordion ────────────────────────────────────── */
+  .mobile-group-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid hsl(var(--foreground) / 0.04);
+  }
+
+  .mobile-group-row .header-mobile-link {
+    flex: 1;
+    border-bottom: none;
+  }
+
+  .mobile-accordion-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    padding: 0.5rem;
+    margin-left: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .mobile-accordion-btn:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .mobile-accordion-btn svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.25s ease;
+  }
+
+  .mobile-group[data-open="true"] .mobile-accordion-btn svg {
+    transform: rotate(180deg);
+  }
+
+  /* 0fr → 1fr: mở accordion không cần max-height "số ma thuật" */
+  .mobile-group-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-group-panel-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .mobile-group[data-open="true"] .mobile-group-panel {
+    grid-template-rows: 1fr;
+  }
+
+  .header-mobile-sublink {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    font-family: "Roboto", sans-serif;
+    text-decoration: none;
+    padding: 0.6875rem 0 0.6875rem 1rem;
+    border-left: 2px solid hsl(var(--border) / 0.7);
+    margin-left: 0.25rem;
+  }
+
+  .header-mobile-sublink:hover {
+    border-left-color: hsl(var(--primary));
+  }
+
+  .hms-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: hsl(var(--primary));
+  }
+
+  .header-mobile-sublink:has(.ndi-soon) .hms-icon {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .hms-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  .hms-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .hms-tagline {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .header-mobile-divider {
+    height: 1px;
+    background: hsl(var(--foreground) / 0.06);
+    margin: 0.5rem 0;
+  }
+
+  .header-mobile-utils {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+  }
+
+  .header-mobile-util-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .header-mobile-util-label {
+    font-size: 0.8125rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* `transition: none` xoá luôn cả delay ⇒ stagger biến mất, panel hiện/ẩn
+     tức thì. `opacity: var(--mm)` giữ nguyên nên nội dung vẫn đúng trạng thái. */
+  @media (prefers-reduced-motion: reduce) {
+    .mega-panel,
+    .mm-card,
+    .mega-foot,
+    .mm-card-arrow,
+    .mega-foot-link svg,
+    .mobile-group-panel,
+    .nav-caret svg,
+    .mobile-accordion-btn svg {
+      transition: none;
+    }
+
+    .mm-card,
+    .mega-foot {
+      transform: none;
+    }
+
+    .mm-card:hover .mm-card-arrow,
+    .mega-foot-link:hover svg {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  // ── Scroll effect ──
+  const header = document.getElementById("main-header");
+  if (header) {
+    const onScroll = () => {
+      if (window.scrollY > 20) {
+        header.classList.add("scrolled");
+      } else {
+        header.classList.remove("scrolled");
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll(); // init
+  }
+
+  // ── Mobile menu toggle ──
+  const btn = document.getElementById("mobile-menu-btn");
+  const menu = document.getElementById("mobile-menu");
+  const iconMenu = document.getElementById("icon-menu");
+  const iconClose = document.getElementById("icon-close");
+
+  btn?.addEventListener("click", () => {
+    menu?.classList.toggle("hidden");
+    iconMenu?.classList.toggle("hidden");
+    iconClose?.classList.toggle("hidden");
+  });
+
+  // Close menu when clicking a link.
+  // Caret của accordion KHÔNG mang class .mobile-link nên không lọt vào đây.
+  document.querySelectorAll(".mobile-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      menu?.classList.add("hidden");
+      iconMenu?.classList.remove("hidden");
+      iconClose?.classList.add("hidden");
+    });
+  });
+
+  // ── Desktop mega-menu ──
+  // Panel rộng ⇒ cần hover-intent, nếu không nó nhấp nháy khi con trỏ chỉ lướt qua.
+  const OPEN_DELAY = 60;
+  // 160ms chứ không phải 260ms: panel dán sát đáy header (top:100%) và là con
+  // của .nav-item, nên rê thẳng xuống panel KHÔNG kích hoạt pointerleave —
+  // không còn "vùng chết" cần bắc cầu. Chỉ lối ra ngang mới cần trễ, và trễ
+  // dài làm menu bám dai khi người dùng chỉ đang đi sang mục nav kế bên.
+  const CLOSE_DELAY = 160;
+
+  document.querySelectorAll<HTMLElement>(".nav-item--menu").forEach((item) => {
+    const caret = item.querySelector<HTMLButtonElement>(".nav-caret");
+    const panel = item.querySelector<HTMLElement>(".mega-panel");
+    if (!caret || !panel) return;
+
+    // Vô hiệu nhánh CSS :hover và :focus-within ngay khi JS chạy (xem comment ở CSS)
+    item.dataset.open = "false";
+
+    let openTimer: number | undefined;
+    let closeTimer: number | undefined;
+    const clearTimers = () => {
+      window.clearTimeout(openTimer);
+      window.clearTimeout(closeTimer);
+    };
+
+    const set = (open: boolean) => {
+      clearTimers();
+      item.dataset.open = String(open);
+      caret.setAttribute("aria-expanded", String(open));
+    };
+
+    // pointerenter/leave KHÔNG kích hoạt khi con trỏ đi vào phần tử con, kể cả
+    // .mega-panel nằm ngoài hộp của .nav-item — nên rê xuống panel vẫn tính là
+    // "còn ở trong". Chặn pointerType != mouse để khớp @media (hover:hover).
+    item.addEventListener("pointerenter", (e) => {
+      if (e.pointerType !== "mouse") return;
+      clearTimers();
+      openTimer = window.setTimeout(() => set(true), OPEN_DELAY);
+    });
+
+    item.addEventListener("pointerleave", (e) => {
+      if (e.pointerType !== "mouse") return;
+      clearTimers();
+      closeTimer = window.setTimeout(() => set(false), CLOSE_DELAY);
+    });
+
+    caret.addEventListener("click", () => set(item.dataset.open !== "true"));
+
+    item.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && item.dataset.open === "true") {
+        set(false);
+        caret.focus();
+      }
+      // Chỉ mở-và-nhảy-vào-panel khi focus còn Ở NGOÀI panel (trên nhãn hoặc
+      // caret). Không có guard này thì ArrowDown lúc đang ở trong panel sẽ chạy
+      // hai lần: handler của panel dời sang link kế tiếp, rồi event nổi bọt lên
+      // đây và kéo focus ngược về link đầu tiên.
+      if (e.key === "ArrowDown" && !panel.contains(e.target as Node)) {
+        e.preventDefault();
+        set(true);
+        panel.querySelector<HTMLAnchorElement>("a")?.focus();
+      }
+    });
+
+    // Roving focus 1D: thứ tự DOM trùng thứ tự đọc của lưới (trái→phải, trên→dưới),
+    // nên đi tuyến tính là đúng và không cần tính số cột.
+    panel.addEventListener("keydown", (e) => {
+      const links = Array.from(panel.querySelectorAll<HTMLAnchorElement>("a"));
+      const i = links.indexOf(document.activeElement as HTMLAnchorElement);
+      if (i === -1) return;
+
+      const focusAt = (n: number) => {
+        e.preventDefault();
+        links[(n + links.length) % links.length].focus();
+      };
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") focusAt(i + 1);
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") focusAt(i - 1);
+      else if (e.key === "Home") focusAt(0);
+      else if (e.key === "End") focusAt(links.length - 1);
+    });
+
+    // Tab ra ngoài đóng menu (mẫu disclosure — không bẫy focus)
+    item.addEventListener("focusout", (e) => {
+      if (!item.contains(e.relatedTarget as Node | null)) set(false);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!item.contains(e.target as Node)) set(false);
+    });
+  });
+
+  // ── Mobile accordion ──
+  document.querySelectorAll<HTMLElement>(".mobile-group").forEach((group) => {
+    const accBtn = group.querySelector<HTMLButtonElement>(
+      ".mobile-accordion-btn",
+    );
+    if (!accBtn) return;
+
+    accBtn.addEventListener("click", () => {
+      const open = group.dataset.open === "true";
+      group.dataset.open = String(!open);
+      accBtn.setAttribute("aria-expanded", String(!open));
+    });
+  });
+</script>

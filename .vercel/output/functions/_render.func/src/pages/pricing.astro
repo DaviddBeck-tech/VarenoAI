@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import PricingSection from '../components/PricingSection.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../config/site';
+
+// Bật Vercel cache HTML
+Astro.response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate=86400');
+
+let pricingSettingsData = null;
+
+try {
+  const response = await fetch(SITE.graphqlUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        query GetPricingPageVI {
+          pricingVi {
+            pricingSetup {
+              title
+              titleHighlight
+              description
+              plans {
+                planName
+                desc
+                price
+                period
+                priceYearly: priceyearly
+                yearlyDescription: yearlydescription
+                discountBadge: discountbadge
+                isHighlighted
+                ctaText
+                ctaLink
+                features {
+                  featureText
+                }
+              }
+            }
+          }
+        }
+      `
+    })
+  });
+  
+  const json = await response.json();
+  pricingSettingsData = json.data?.pricingVi?.pricingSetup;
+} catch (error) {
+  console.error('Failed to fetch pricing data from WordPress:', error);
+}
+
+const seoData = {
+  title: pricingSettingsData?.title ? `${pricingSettingsData.title} | ${SITE.brandName}` : `Bảng giá | ${SITE.brandName}`,
+  description: pricingSettingsData?.description || `Chi tiết các gói cước linh hoạt của ${SITE.brandName}, đáp ứng mọi nhu cầu doanh nghiệp.`,
+};
+---
+
+<BaseLayout 
+  title={seoData.title} 
+  description={seoData.description} 
+  seo={seoData}
+  lang="vi"
+>
+  <div class="min-h-screen flex flex-col pt-16">
+    <Header />
+    
+    <main class="flex-grow pt-12 pb-24">
+      {pricingSettingsData && (
+        <PricingSection 
+          title={pricingSettingsData.title} 
+          titleHighlight={pricingSettingsData.titleHighlight} 
+          description={pricingSettingsData.description} 
+          pricingPlans={pricingSettingsData.plans} 
+        />
+      )}
+      {!pricingSettingsData && <PricingSection />}
+    </main>
+
+    <Footer />
+  </div>
+</BaseLayout>

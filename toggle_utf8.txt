@@ -1,0 +1,49 @@
+﻿diff --git a/chatvareno-frontend/src/components/ThemeToggle.tsx b/chatvareno-frontend/src/components/ThemeToggle.tsx
+index b3d77294..c2509d1d 100644
+--- a/chatvareno-frontend/src/components/ThemeToggle.tsx
++++ b/chatvareno-frontend/src/components/ThemeToggle.tsx
+@@ -2,20 +2,39 @@ import { useState, useEffect } from 'react';
+ 
+ export default function ThemeToggle() {
+   const [theme, setTheme] = useState<'light' | 'dark'>('light');
++  const [mounted, setMounted] = useState(false);
+ 
+   useEffect(() => {
+-    const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+-    setTheme(current);
++    const syncTheme = () => {
++      const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
++      setTheme(current);
++    };
++
++    syncTheme();
++    setMounted(true);
++
++    // Listen to custom event so that multiple toggles (desktop and mobile) stay in sync
++    window.addEventListener('theme-changed', syncTheme);
++    return () => window.removeEventListener('theme-changed', syncTheme);
+   }, []);
+ 
+   const toggleTheme = () => {
+-    const next = theme === 'light' ? 'dark' : 'light';
+-    document.documentElement.classList.remove(theme);
++    // Read directly from DOM to avoid state mismatches between components
++    const isDark = document.documentElement.classList.contains('dark');
++    const next = isDark ? 'light' : 'dark';
++    
++    document.documentElement.classList.remove('light', 'dark');
+     document.documentElement.classList.add(next);
+     localStorage.setItem('theme', next);
+-    setTheme(next);
++    
++    // Dispatch event to update state in all other ThemeToggle instances
++    window.dispatchEvent(new Event('theme-changed'));
+   };
+ 
++  if (!mounted) {
++    return <div className="relative w-14 h-7 rounded-full bg-secondary border border-border flex items-center px-1" aria-hidden="true" />;
++  }
++
+   return (
+     <button
+       onClick={toggleTheme}

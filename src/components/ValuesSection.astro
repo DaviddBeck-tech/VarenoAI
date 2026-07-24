@@ -1,0 +1,327 @@
+---
+// ── VÌ SAO VARENOAI ─────────────────────────────────────────────
+// Bố cục 2 cột LỆCH: tuyên ngôn bên trái (dính khi cuộn), các nguyên tắc
+// bên phải là một CHỒNG CARD scroll-stacking.
+//
+// Chồng card mượn từ `cards-stack` (21st.dev #1832): mỗi card dính ở một mốc
+// `top` cao dần, nên khi cuộn, card sau trượt lên đè card trước và chỉ chừa
+// một mép mỏng ló ra — thành một chồng bậc thang. Bản gốc dựng bằng
+// framer-motion `useScroll`; ở đây chỉ cần `position: sticky` + `top` bậc
+// thang, KHÔNG cần JS hay thư viện. Không có sự kiện scroll nào chạy.
+//
+// CỐ Ý không dùng "3 thẻ đều nhau nằm ngang" — nhịp mặc định của landing do AI
+// dựng; trang này đã có hai lưới rồi (mega-menu, EcosystemShowcase).
+//
+// Icon lưu dạng khoá, giải bằng bảng tra + fallback (giống ProductIcon.astro).
+
+interface Pillar {
+  icon: string;
+  title: string;
+  desc: string;
+  /** Các điểm cụ thể hoá lời hứa; có thể rỗng. */
+  points?: string[];
+}
+
+interface Props {
+  title: string;
+  titleAccent?: string | null;
+  subtitle?: string | null;
+  pillars: Pillar[];
+}
+
+const { title, titleAccent, subtitle, pillars } = Astro.props;
+
+const FALLBACK = "sparkles";
+
+const VALUE_ICONS: Record<string, string> = {
+  shield: `<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" />`,
+  globe: `<circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" />`,
+  zap: `<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />`,
+  lock: `<rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />`,
+  users: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />`,
+  sparkles: `<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z" />`,
+};
+---
+
+<section class="val-section">
+  <div class="container val-inner">
+    <header class="val-statement">
+      <h2 class="val-title">
+        {title}{titleAccent && <span class="val-hl">{titleAccent}</span>}
+      </h2>
+      {subtitle && <p class="val-subtitle">{subtitle}</p>}
+    </header>
+
+    {/* <ol> vì thứ tự có nghĩa: các nguyên tắc được đánh số 01→N */}
+    <ol class="val-stack" role="list">
+      {
+        pillars.map((p, i) => (
+          <li class="val-card" style={`--i:${i}`}>
+            <div class="val-card-top">
+              <span class="val-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                  set:html={VALUE_ICONS[p.icon] ?? VALUE_ICONS[FALLBACK]}
+                />
+              </span>
+              <span class="val-num" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+            </div>
+
+            <h3 class="val-card-title">{p.title}</h3>
+            <p class="val-card-desc">{p.desc}</p>
+
+            {p.points && p.points.length > 0 && (
+              <ul class="val-points" role="list">
+                {p.points.map((pt) => (
+                  <li>
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="15"
+                      height="15"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .val-section {
+    padding: 5rem 0;
+  }
+
+  /* Lệch có chủ đích: cột tuyên ngôn hẹp hơn cột nội dung */
+  .val-inner {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .val-statement {
+    position: sticky;
+    /* Header cao 4rem */
+    top: 6rem;
+  }
+
+  .val-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.875rem;
+    text-wrap: balance;
+  }
+
+  .val-hl {
+    color: hsl(var(--primary));
+  }
+
+  .val-subtitle {
+    font-size: var(--fs-lead);
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    max-width: 40ch;
+  }
+
+  /* ── Chồng card scroll-stacking ──────────────────────────────
+     Mỗi card `position: sticky` với `top` cao dần theo --i. Khi cuộn, card sau
+     dừng thấp hơn card trước 1rem, đè lên và chỉ chừa mép trên ló ra. Nền ĐẶC
+     + bóng để card sau che hẳn card trước. */
+  .val-stack {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .val-card {
+    position: sticky;
+    /* Bậc thang 1.5rem: mỗi card trước ló 24px mép trên khi bị đè, đủ dày để
+       thấy rõ chồng 3–4 lớp thay vì một mép mảnh. */
+    top: calc(6rem + var(--i) * 1.5rem);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.8);
+    border-radius: 1.5rem;
+    padding: 1.75rem 2rem 2rem;
+    /* elev-2 (không phải elev-1): bóng đậm hơn để card đè tách lớp rõ khỏi card
+       bị đè phía sau. Ở trạng thái nghỉ nhìn vẫn nhẹ vì bóng toả rộng. */
+    box-shadow: var(--elev-2);
+  }
+
+  .val-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .val-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: var(--shape-btn);
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .val-num {
+    font-family: "Google Sans", sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: hsl(var(--primary) / 0.3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .val-card-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.625rem;
+  }
+
+  .val-card-desc {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    max-width: 58ch;
+  }
+
+  /* ── Điểm cụ thể ────────────────────────────────────────────── */
+  .val-points {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid hsl(var(--border) / 0.7);
+    display: grid;
+    gap: 0.625rem;
+  }
+
+  .val-points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: hsl(var(--foreground) / 0.9);
+  }
+
+  .val-points svg {
+    flex-shrink: 0;
+    margin-top: 0.1875rem;
+    fill: none;
+    stroke: hsl(var(--primary));
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Spacer đuôi — đây là thứ làm chồng "dồn đủ". Nó nằm TRONG containing block
+     của các card sticky, nên: (1) card cuối cũng có chỗ để dính thay vì bị đẩy
+     ra ngay khi vừa lên top; (2) khi người dùng cuộn qua vùng spacer này, cả
+     chồng 4 card đứng yên ở top còn nền trôi bên dưới — chính là khoảnh khắc
+     "chồng đầy đủ" đáng xem. Không có spacer thì chỉ 2 card kịp chồng một lúc.
+     45vh: đủ giữ khoảnh khắc, không quá dài thành quãng cuộn chết. */
+  .val-stack::after {
+    content: "";
+    display: block;
+    height: 45vh;
+  }
+
+  /* ── Stagger khi section lộ ra. Không JS ⇒ không class ⇒ không animation.
+     CHỈ áp cho card CHƯA dính (transform của animation xung đột với sticky nếu
+     chồng đã hình thành, nhưng entrance chạy một lần lúc section vào khung nên
+     an toàn). */
+  :global(.scroll-animate--visible) .val-card {
+    animation: val-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  @keyframes val-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .val-inner {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    .val-statement {
+      position: static;
+    }
+    /* Một cột trên hẹp: chồng-dính card che nhau kín màn, khó đọc. Cho xếp
+       dọc thường. Spacer đuôi cũng bỏ, không thì thừa 45vh trắng. */
+    .val-card {
+      position: static;
+    }
+    .val-stack {
+      gap: 1.25rem;
+    }
+    .val-stack::after {
+      display: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .val-card {
+      padding: 1.5rem 1.5rem 1.75rem;
+    }
+    .val-card-top {
+      margin-bottom: 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Chồng bậc thang là hiệu ứng trang trí theo cuộn; người bật giảm chuyển
+       động được xem card xếp dọc bình thường, không chồng che nhau. */
+    .val-card {
+      position: static;
+    }
+    :global(.scroll-animate--visible) .val-card {
+      animation: none;
+    }
+  }
+</style>

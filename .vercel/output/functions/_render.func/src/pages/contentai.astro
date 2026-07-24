@@ -1,0 +1,114 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import HeroSection from "../components/HeroSection.astro";
+import FeaturesSection from "../components/FeaturesSection.astro";
+import PrivacySection from "../components/PrivacySection.astro";
+import CtaBand from "../components/CtaBand.astro";
+import { NAV } from "../config/nav";
+import { findProduct } from "../config/products";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const product = findProduct("contentai");
+
+// ── Vì sao trang này KHÔNG dùng HowItWorks / ProductShowcase / SliderInfoSection ──
+// HowItWorks     → fallback chèn screenshot app ChatVareno theo chỉ số bước.
+// ProductShowcase→ fallback là testimonial bịa kèm tên người thật.
+// SliderInfoSection → fallback ảnh trỏ /media/... (WordPress chưa dựng) ⇒ ảnh vỡ.
+// Mọi props dưới đây đều truyền tường minh để không rơi vào fallback của ChatVareno.
+
+// NỘI DUNG TẠM — thay bằng nội dung thật khi ContentAI ra mắt.
+const features = [
+  {
+    title: "Lên dàn ý tự động",
+    description:
+      "Nhập chủ đề, nhận dàn ý có cấu trúc chuẩn SEO trong vài giây.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Viết theo giọng thương hiệu",
+    description:
+      "Huấn luyện bằng nội dung sẵn có của bạn để giữ đúng giọng văn.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Tối ưu SEO ngay khi viết",
+    description:
+      "Gợi ý từ khoá, mật độ và cấu trúc heading theo thời gian thực.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Mô tả sản phẩm hàng loạt",
+    description:
+      "Sinh mô tả cho cả danh mục sản phẩm từ một file dữ liệu duy nhất.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Nội dung mạng xã hội",
+    description:
+      "Chuyển một bài viết dài thành chuỗi bài đăng cho từng nền tảng.",
+    image: null,
+    link: NAV.contact,
+  },
+  {
+    title: "Kiểm tra trước khi đăng",
+    description:
+      "Rà soát chính tả, trùng lặp và tính nhất quán trước khi xuất bản.",
+    image: null,
+    link: NAV.contact,
+  },
+];
+---
+
+<BaseLayout title={product.seo.vi.title} description={product.seo.vi.description}>
+  <Header />
+
+  <div class="min-h-screen">
+    <HeroSection
+      badgeText="SẮP RA MẮT"
+      titleMain="Sản xuất nội dung bằng"
+      titleHighlight={"AI\nquy mô lớn\nđúng giọng văn"}
+      subtitle={product.description.vi}
+      btn1Text="Đăng ký nhận tin"
+      btn1Link={NAV.contact}
+      btn2Text="Xem sản phẩm khác"
+      btn2Link={NAV.services}
+    />
+
+    <FeaturesSection
+      badge="Tính năng"
+      title="Mọi thứ bạn cần để"
+      titleHighlight=" sản xuất nội dung"
+      description="ContentAI lo phần lặp đi lặp lại, để đội ngũ của bạn tập trung vào ý tưởng."
+      button1Text="Đăng ký nhận tin"
+      button1Url={NAV.contact}
+      button2Text="Liên hệ"
+      button2Url={NAV.contact}
+      featuresList={features}
+    />
+
+    <PrivacySection
+      title="Nội dung của bạn không rời khỏi tầm kiểm soát"
+      description="Bản thảo và dữ liệu huấn luyện của bạn không được dùng để huấn luyện mô hình công khai."
+      linkText="Đọc chính sách bảo mật"
+      linkUrl="/legal/privacy-policy/"
+    />
+
+    <CtaBand
+      title="ContentAI sắp ra mắt"
+      subtitle="Để lại thông tin để nhận thông báo sớm nhất khi sản phẩm mở đăng ký."
+      buttonLabel="Đăng ký nhận tin"
+    />
+  </div>
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,418 @@
+---
+// Phần hiển thị của trang 404 — dùng chung cho /404 và /en/404.
+// Tách ra để không phải nhân bản ~300 dòng CSS cho bản tiếng Anh.
+interface Props {
+  heading?: string;
+  homeLabel?: string;
+  homeHref?: string;
+  contactLabel?: string;
+  contactHref?: string;
+}
+
+const {
+  heading = "Sync Lost",
+  homeLabel = "Go Home",
+  homeHref = "/",
+  contactLabel = "Contact",
+  contactHref = "/contact/",
+} = Astro.props;
+---
+
+<div class="page-wrap">
+  <div class="pix-world">
+    <div class="pix-ambient"></div>
+    <div
+      class="bubble"
+      style="left: 15%; animation-delay: 0s; width: 10px; height: 10px;"
+    >
+    </div>
+    <div
+      class="bubble"
+      style="left: 80%; animation-delay: -2s; width: 6px; height: 6px;"
+    >
+    </div>
+    <div
+      class="bubble"
+      style="left: 45%; animation-delay: -4.5s; width: 12px; height: 12px;"
+    >
+    </div>
+    <div
+      class="bubble"
+      style="left: 65%; animation-delay: -1.2s; width: 5px; height: 5px;"
+    >
+    </div>
+
+    <div class="tilt-engine">
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+      <div class="t-cell"></div>
+
+      <div class="composition">
+        <div class="water-orb">
+          <div class="swimmers">
+            <div class="num" data-v="4">4</div>
+            <div class="num" data-v="0">0</div>
+            <div class="num" data-v="4">4</div>
+          </div>
+        </div>
+        <div class="ui-layer">
+          <p class="heading">{heading}</p>
+          <div class="btn-group">
+            <a href={homeHref} class="pix-btn">{homeLabel}</a>
+            <a href={contactHref} class="pix-btn btn-light">{contactLabel}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .page-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pix-world {
+    --c-bg-bright: #ffffff;
+    --c-bg-dim: #f1f5f9;
+    --c-toy-blue: #38bdf8;
+    --c-toy-red: #ef4444;
+    --c-toy-yellow: #fbbf24;
+    --c-toy-green: #22c55e;
+    --c-white: #ffffff;
+    --c-text-main: #1e293b;
+    --font-soft: ui-rounded, "Segoe UI", Roboto, sans-serif;
+
+    width: 100%;
+    min-height: 100vh;
+    background: radial-gradient(
+      circle at 50% 35%,
+      var(--c-bg-bright) 0%,
+      #e2e8f0 100%
+    );
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    font-family: var(--font-soft);
+    perspective: 1500px;
+  }
+
+  .pix-ambient {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        circle at 20% 20%,
+        rgba(251, 191, 36, 0.15) 0%,
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 80% 80%,
+        rgba(56, 189, 248, 0.1) 0%,
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 50% 20%,
+        rgba(255, 255, 255, 0.8),
+        transparent 70%
+      );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .tilt-engine {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    z-index: 10;
+  }
+
+  .t-cell {
+    position: relative;
+    z-index: 10;
+  }
+
+  .composition {
+    position: absolute;
+    inset: 0;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform-style: preserve-3d;
+    pointer-events: none;
+    z-index: 20;
+    --rx: 0deg;
+    --ry: 0deg;
+    transform: rotateX(var(--rx)) rotateY(var(--ry));
+  }
+
+  /* Column tilt (Y axis) */
+  .t-cell:nth-child(5n + 1):hover ~ .composition {
+    --ry: -22deg;
+  }
+  .t-cell:nth-child(5n + 2):hover ~ .composition {
+    --ry: -11deg;
+  }
+  .t-cell:nth-child(5n + 3):hover ~ .composition {
+    --ry: 0deg;
+  }
+  .t-cell:nth-child(5n + 4):hover ~ .composition {
+    --ry: 11deg;
+  }
+  .t-cell:nth-child(5n + 5):hover ~ .composition {
+    --ry: 22deg;
+  }
+
+  /* Row tilt (X axis) */
+  .t-cell:nth-child(-n + 5):hover ~ .composition {
+    --rx: 18deg;
+  }
+  .t-cell:nth-child(n + 6):nth-child(-n + 10):hover ~ .composition {
+    --rx: 9deg;
+  }
+  .t-cell:nth-child(n + 11):nth-child(-n + 15):hover ~ .composition {
+    --rx: 0deg;
+  }
+  .t-cell:nth-child(n + 16):nth-child(-n + 20):hover ~ .composition {
+    --rx: -9deg;
+  }
+  .t-cell:nth-child(n + 21):nth-child(-n + 25):hover ~ .composition {
+    --rx: -18deg;
+  }
+
+  .water-orb {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    transform: translateZ(20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.05),
+      inset 0 0 40px rgba(255, 255, 255, 0.8),
+      inset 0 -10px 20px rgba(56, 189, 248, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .swimmers {
+    display: flex;
+    gap: 12px;
+    transform: translateZ(80px);
+  }
+
+  .num {
+    font-size: 8.5rem;
+    font-weight: 950;
+    line-height: 1;
+    color: var(--c-white);
+    position: relative;
+    animation: swim-float 4s infinite ease-in-out;
+    transform-style: preserve-3d;
+    text-shadow:
+      0 4px 0 rgba(0, 0, 0, 0.05),
+      0 8px 0 rgba(0, 0, 0, 0.08),
+      0 25px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .num:nth-child(1) {
+    animation-delay: 0s;
+    color: var(--c-toy-red);
+    text-shadow:
+      0 8px 0 #991b1b,
+      0 25px 40px rgba(239, 68, 68, 0.2);
+  }
+  .num:nth-child(2) {
+    animation-delay: -1.3s;
+    font-size: 7.5rem;
+    color: var(--c-toy-yellow);
+    text-shadow:
+      0 8px 0 #b45309,
+      0 25px 40px rgba(251, 191, 36, 0.2);
+  }
+  .num:nth-child(3) {
+    animation-delay: -2.6s;
+    color: var(--c-toy-blue);
+    text-shadow:
+      0 8px 0 #075985,
+      0 25px 40px rgba(56, 189, 248, 0.2);
+  }
+
+  .num::after {
+    content: attr(data-v);
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      transparent 40%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+  }
+
+  .ui-layer {
+    margin-top: -65px;
+    transform: translateZ(140px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ui-layer .heading {
+    font-size: 1.3rem;
+    color: var(--c-text-main);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 950;
+    margin-bottom: 28px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    background: white;
+    padding: 10px 25px;
+    border-radius: 100px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 18px;
+    pointer-events: auto;
+  }
+
+  .pix-btn {
+    padding: 16px 38px;
+    background: #1e293b;
+    color: #ffffff;
+    border-radius: 22px;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
+    cursor: pointer;
+    box-shadow:
+      0 8px 0 #0f172a,
+      0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .pix-btn:hover {
+    transform: translateY(-6px) scale(1.05);
+    background: var(--c-toy-blue);
+    color: #fff;
+    box-shadow:
+      0 12px 0 #0369a1,
+      0 25px 45px rgba(56, 189, 248, 0.3);
+  }
+
+  .pix-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #0369a1;
+  }
+
+  .btn-light {
+    background: #ffffff;
+    color: #1e293b;
+    box-shadow: 0 8px 0 #cbd5e1;
+    border: 1px solid #e2e8f0;
+  }
+
+  .btn-light:hover {
+    background: var(--c-toy-green);
+    color: #fff;
+    border-color: var(--c-toy-green);
+    box-shadow:
+      0 12px 0 #15803d,
+      0 25px 45px rgba(34, 197, 94, 0.2);
+  }
+
+  @keyframes swim-float {
+    0%,
+    100% {
+      transform: translateY(0) scale(1) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-30px) scale(1.1, 0.92) rotate(3deg);
+    }
+    66% {
+      transform: translateY(20px) scale(0.92, 1.08) rotate(-3deg);
+    }
+  }
+
+  .bubble {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.5;
+    animation: bubble-rise 7s infinite linear;
+    box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  @keyframes bubble-rise {
+    0% {
+      transform: translateY(120px) scale(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateY(-450px) scale(2);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .num,
+    .bubble {
+      animation: none;
+    }
+    .composition,
+    .pix-btn {
+      transition: none;
+    }
+  }
+</style>

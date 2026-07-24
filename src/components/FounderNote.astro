@@ -1,0 +1,168 @@
+---
+// ── THƯ NGỎ (trang /about/) ─────────────────────────────────────
+// Khối đóng mang tính CON NGƯỜI: một lá thư ngắn ký tên đội ngũ, đặt ngay
+// trước CtaBand. CỐ Ý không ảnh chân dung giả, không con số — chỉ chữ + chữ
+// ký + một monogram thương hiệu. Đây là một "họ bố cục" editorial khác hẳn:
+//   · AboutStory  = 2 cột lệch + thẻ sứ mệnh
+//   · ValuesSection = chồng card scroll-stacking
+//   · FounderNote  = MỘT cột thư, căn trái, dấu ngoặc kép lớn trang trí
+//
+// Section tự nhận .scroll-animate từ IntersectionObserver ở BaseLayout.
+import { SITE } from "../config/site";
+
+interface Props {
+  eyebrow: string;
+  heading: string;
+  paragraphs: string[];
+  signature: string;
+  signatureRole?: string | null;
+}
+
+const { eyebrow, heading, paragraphs, signature, signatureRole } = Astro.props;
+
+// Monogram = chữ cái đầu thương hiệu ("V"). Không phải avatar người thật.
+const initial = SITE.brandName.charAt(0).toUpperCase();
+---
+
+<section class="letter">
+  <div class="container">
+    <div class="letter-card">
+      <span class="letter-quote" aria-hidden="true">&ldquo;</span>
+
+      <span class="letter-eyebrow">{eyebrow}</span>
+      <h2 class="letter-heading">{heading}</h2>
+
+      {paragraphs.map((p) => <p class="letter-p">{p}</p>)}
+
+      <div class="letter-sign">
+        <span class="letter-monogram" aria-hidden="true">{initial}</span>
+        <span class="letter-sign-meta">
+          <span class="letter-sign-name">{signature}</span>
+          {signatureRole && <span class="letter-sign-role">{signatureRole}</span>}
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .letter {
+    padding: 4rem 0;
+  }
+
+  .letter-card {
+    position: relative;
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 4vw, 3.25rem);
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--border) / 0.7);
+    /* Quầng xanh thương hiệu rất nhẹ ở góc trên-phải, trên nền thẻ. */
+    background:
+      radial-gradient(
+        80% 120% at 100% 0%,
+        hsl(var(--primary) / 0.07) 0%,
+        transparent 55%
+      ),
+      hsl(var(--card));
+  }
+
+  /* Dấu ngoặc kép lớn — mốc thị giác báo "đây là một lá thư/lời nói". */
+  .letter-quote {
+    position: absolute;
+    top: clamp(0.25rem, 1.5vw, 0.75rem);
+    left: clamp(1.25rem, 3vw, 2.25rem);
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(4rem, 9vw, 6.5rem);
+    font-weight: 700;
+    line-height: 1;
+    color: hsl(var(--primary) / 0.18);
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .letter-eyebrow {
+    display: inline-block;
+    position: relative;
+    font-family: "Roboto", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    margin-bottom: 0.875rem;
+  }
+
+  .letter-heading {
+    font-family: "Google Sans", sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 0 0 1.5rem;
+    text-wrap: balance;
+  }
+
+  .letter-p {
+    font-size: var(--fs-lead);
+    line-height: 1.85;
+    color: hsl(var(--muted-foreground));
+    margin: 0 0 1.15rem;
+    max-width: 60ch;
+  }
+  .letter-p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  /* ── Chữ ký ─────────────────────────────────────────────────── */
+  .letter-sign {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-top: 2rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid hsl(var(--border) / 0.7);
+  }
+
+  .letter-monogram {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--shape-btn);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-family: "Google Sans", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .letter-sign-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .letter-sign-name {
+    font-family: "Google Sans", sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+
+  .letter-sign-role {
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  @media (max-width: 560px) {
+    .letter-p {
+      max-width: none;
+    }
+  }
+</style>

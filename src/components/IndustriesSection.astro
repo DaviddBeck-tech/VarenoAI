@@ -1,0 +1,481 @@
+---
+// Lưới ngành nghề — BỐ CỤC 2 CỘT (như tasteskill "Current skills"):
+//   · Cột trái  : tiêu đề + 6 thẻ ngành (icon + tên + use-case ngắn)
+//   · Cột phải  : MỘT CỘT DỌC các thẻ đè nhẹ lên nhau, lệch trái/phải, nghiêng —
+//                 trộn ẢNH THẬT với vài THẺ NỘI DUNG (chữ) để nhìn giàu hơn.
+//
+// Vì sao thẻ TĨNH (chỉ hover mới nhúc nhích), không parallax như hero:
+// motif "chữ + ảnh/thẻ nghiêng trôi" ĐÃ là chữ ký của UmbrellaHero. Ở đây cố ý
+// làm chồng thẻ ĐỨNG YÊN, đè nhẹ — cùng gia đình thị giác nhưng khác nhịp.
+//
+// Ảnh: dùng asset thật đã có trong repo. KHÔNG dùng app-mockup.png (hero +
+// EcosystemShowcase đang dùng) để tránh trùng ảnh xuyên section.
+import type { ImageMetadata } from "astro";
+import ProductIcon from "./ProductIcon.astro";
+
+// CỐ Ý <img> thay vì <Image>: astro.config bật vercel imageService nên /_image
+// trả 500 khi `astro dev`. Import tĩnh vẫn cho src băm + width/height thật.
+// Bản -sm 800px: ảnh CHỈ hiển thị ~300px (≤600px @2x) nên dùng ảnh gốc ~1672px
+// khiến GPU thu nhỏ 5–6× rồi XOAY → lấy mẫu bilinear gây RĂNG CƯA + mờ. Bản đúng
+// cỡ (thu ~2×) cho cạnh sắc, ít alias. Ảnh gốc lớn vẫn để hero dùng.
+import shotChat from "../assets/Example-1.jpg";
+import eduShot from "../assets/contruction.png";
+import eduShot2 from "../assets/ChatVareno_2.png";
+import csEdu from "../assets/Ecomerce-sm.png";
+
+interface Industry {
+  name: string;
+  blurb: string;
+  icon: string;
+  featured?: boolean;
+  href: string;
+}
+
+interface Props {
+  title?: string | null;
+  titleHighlight?: string | null;
+  subtitle?: string | null;
+  industries: Industry[];
+}
+
+const { title, titleHighlight, subtitle, industries } = Astro.props;
+
+// Cột phải — MỘT cột dọc, thẻ đè nhẹ. Mỗi thẻ:
+//   w  = bề rộng (% của cột)     ml = lệch ngang (%)   r = độ nghiêng
+//   mt = độ ĐÈ lên thẻ trên (rem, chỉ đè nhẹ theo yêu cầu)
+// Điều kiện: w + ml ≤ ~96 để thẻ không tràn ngang.
+// LƯU Ý: mọi thẻ ảnh dùng CHUNG một w (62) + khung 16:9 cố định (xem CSS
+// .ind-item--image) nên tất cả ảnh LUÔN cùng kích thước; ml/r chỉ đổi vị trí.
+type CollageCard =
+  | { kind: "image"; img: ImageMetadata; alt: string; w: number; ml: number; r: number; mt: number }
+  | { kind: "statement"; text: string; attr: string; w: number; ml: number; r: number; mt: number }
+  | { kind: "value"; text: string; w: number; ml: number; r: number; mt: number };
+
+const collage: CollageCard[] = [
+  {
+    kind: "image",
+    img: shotChat,
+    alt: "Giao diện quản trị ChatVareno với khung chat trực tiếp",
+    w: 62, ml: 6, r: -2.5, mt: 0,
+  },
+  {
+    kind: "image",
+    img: eduShot,
+    alt: "Minh hoạ giáo dục — mũ tốt nghiệp đặt trên cuốn sách",
+    w: 62, ml: 26, r: 3, mt: 2.25,
+  },
+  // Ảnh thứ 3 trở đi — CHỈ hiện ở desktop/tablet; mobile ẩn (xem @media ≤640).
+  {
+    kind: "image",
+    img: eduShot2,
+    alt: "Minh hoạ giáo dục — mũ tốt nghiệp và bút trên cuốn sách",
+    w: 62, ml: 4, r: -2.5, mt: 2.25,
+  },
+  {
+    kind: "image",
+    img: csEdu,
+    alt: "Trợ lý AI tư vấn bán lẻ & TMĐT — hỏi đáp size, tồn kho trên ứng dụng",
+    w: 62, ml: 34, r: 2.5, mt: 2.25,
+  },
+];
+---
+
+<section class="ind-section">
+  <div class="container ind-split">
+    <!-- ── Cột trái: nội dung ─────────────────────────────── -->
+    <div class="ind-left">
+      <header class="ind-header">
+        {
+          title && (
+            <h2 class="ind-title">
+              {title}
+              {titleHighlight && <span class="ind-hl">{titleHighlight}</span>}
+            </h2>
+          )
+        }
+        {subtitle && <p class="ind-subtitle">{subtitle}</p>}
+      </header>
+
+      <div class="ind-grid">
+        {
+          industries.map((it, i) => (
+            <a
+              href={it.href}
+              class:list={[
+                "ind-card",
+                "stagger-in",
+                { "ind-card--featured": it.featured },
+              ]}
+              style={`--i:${i}`}
+            >
+              <span class="ind-card-icon">
+                <ProductIcon name={it.icon} size={20} />
+              </span>
+              <span class="ind-card-name">{it.name}</span>
+              <span class="ind-card-blurb">{it.blurb}</span>
+              <svg
+                class="ind-card-arrow"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M7 7h10v10" />
+                <path d="M7 17 17 7" />
+              </svg>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- ── Cột phải: một cột thẻ đè nhẹ (tĩnh) ────────────── -->
+    <div class="ind-collage">
+      {
+        collage.map((c, i) => (
+          <div
+            class:list={["ind-item", `ind-item--${c.kind}`]}
+            style={`--w:${c.w}%;--ml:${c.ml}%;--r:${c.r}deg;--mt:${c.mt}rem;--z:${i + 1}`}
+          >
+            {c.kind === "image" && (
+              <img
+                src={c.img.src}
+                width={c.img.width}
+                height={c.img.height}
+                alt={c.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+            {c.kind === "statement" && (
+              <>
+                <span class="ind-item-mark">
+                  <ProductIcon name="sparkles" size={16} />
+                </span>
+                <p class="ind-item-statement">{c.text}</p>
+                <span class="ind-item-attr">{c.attr}</span>
+              </>
+            )}
+            {c.kind === "value" && <p class="ind-item-value">{c.text}</p>}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .ind-section {
+    padding: 5rem 0;
+    /* Thẻ nghiêng có thể nhô vài px; chặn cuộn ngang cấp trang. */
+    overflow: hidden;
+  }
+
+  /* ── Khung 2 cột ─────────────────────────────────────────── */
+  .ind-split {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 3.5rem;
+    /* Căn TOP hai cột (mép tiêu đề thẳng mép cụm thẻ). Cột phải tự stretch cao
+       bằng cột trái (xem .ind-collage) và dồn thẻ xuống đáy nên ĐÁY hai cột
+       thẳng hàng; phần chênh lệch chiều cao rơi thành khoảng hở phía TRÊN cụm
+       thẻ — bất đối xứng có chủ ý (đúng gu DESIGN_VARIANCE cao của trang). */
+    align-items: start;
+  }
+
+  /* ── Cột trái ────────────────────────────────────────────── */
+  .ind-header {
+    margin: 0 0 2rem;
+  }
+
+  .ind-title {
+    font-family: "Google Sans", sans-serif;
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    margin: 0 0 0.875rem;
+    text-wrap: balance;
+  }
+
+  .ind-hl {
+    color: hsl(var(--primary));
+  }
+
+  .ind-subtitle {
+    font-size: var(--fs-lead);
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+    margin: 0;
+    max-width: 42ch;
+  }
+
+  .ind-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .ind-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "icon arrow"
+      "name name"
+      "blurb blurb";
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    padding: 1.125rem;
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card));
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .ind-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: var(--elev-2);
+  }
+  .ind-card:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Ô nổi bật (featured) — nền tô nhẹ màu thương hiệu. */
+  .ind-card--featured {
+    border-color: hsl(var(--primary) / 0.25);
+    background:
+      radial-gradient(
+        130% 130% at 0% 0%,
+        hsl(var(--primary) / 0.1) 0%,
+        transparent 60%
+      ),
+      hsl(var(--card));
+  }
+
+  .ind-card-icon {
+    grid-area: icon;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--shape-btn);
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+  }
+
+  .ind-card-name {
+    grid-area: name;
+    margin-top: 0.625rem;
+    font-family: "Google Sans", sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: hsl(var(--foreground));
+  }
+
+  .ind-card-blurb {
+    grid-area: blurb;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ind-card-arrow {
+    grid-area: arrow;
+    justify-self: end;
+    color: hsl(var(--muted-foreground));
+    transition:
+      transform 0.2s ease,
+      color 0.2s ease;
+  }
+  .ind-card:hover .ind-card-arrow {
+    color: hsl(var(--primary));
+    transform: translate(2px, -2px);
+  }
+
+  /* ── Cột phải: một cột thẻ đè nhẹ ──────────────────────── */
+  .ind-collage {
+    position: relative;
+    max-width: 32rem;
+    margin: 0 auto;
+    /* Bỏ đệm ĐÁY (giữ đệm trên + 2 bên cho thẻ nghiêng/hover không bị cắt) để
+       thẻ ảnh cuối chạm đúng đáy cột → NGANG hàng với box cuối bên trái. */
+    padding: 1rem 1rem 0;
+    display: flex;
+    flex-direction: column;
+    /* Kéo cao bằng cột trái (align-self:stretch tự ghi đè align-items:start của
+       grid → cột phải cao bằng row = chiều cao cột trái, vốn cao hơn), rồi dồn
+       cụm thẻ xuống ĐÁY: đáy ảnh cuối luôn thẳng đáy box cuối bên trái, tự khớp
+       nếu đổi nội dung. Khoảng dư (nếu có) rơi lên PHÍA TRÊN. */
+    align-self: stretch;
+    justify-content: flex-end;
+  }
+
+  .ind-item {
+    width: var(--w, 80%);
+    margin-top: calc(-1 * var(--mt, 2rem));
+    margin-left: var(--ml, 0%);
+    z-index: var(--z, 1);
+    position: relative;
+    border-radius: var(--shape-card);
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card));
+    box-shadow: var(--elev-2);
+    overflow: hidden;
+    transform: rotate(var(--r, 0deg));
+    /* Nâng thẻ (đã xoay) lên lớp compositor riêng: GPU rasterize ảnh MỘT LẦN
+       đúng cỡ hiển thị rồi mới xoay lớp → cạnh + ảnh mượt, đỡ răng cưa so với
+       thu-nhỏ-kèm-xoay trong một lượt bilinear. Chỉ 4 thẻ tĩnh nên chi phí nhỏ. */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s ease;
+  }
+  .ind-item:first-child {
+    margin-top: 0;
+  }
+  /* Hover: dựng thẳng + nâng lên trước (phản hồi mời xem kỹ). */
+  .ind-item:hover {
+    transform: rotate(0deg) translateY(-6px) scale(1.02);
+    box-shadow: var(--elev-3);
+    z-index: 50;
+  }
+
+  /* Thẻ ảnh: khung tỉ lệ CỐ ĐỊNH để MỌI ảnh cùng kích thước (rộng var(--w) +
+     cao theo 16:9), bất kể tỉ lệ gốc. object-fit:cover cắt gọn phần thừa. */
+  .ind-item--image {
+    aspect-ratio: 16 / 9;
+  }
+  .ind-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Thẻ tuyên ngôn — nghịch màu theo nền (tối ở light, sáng ở dark), luôn tương
+     phản mạnh làm điểm nhấn. Không lật theme cả section, chỉ là một thẻ. */
+  .ind-item--statement {
+    border-color: transparent;
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .ind-item-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--shape-btn);
+    background: hsl(var(--primary));
+    color: #fff;
+  }
+  .ind-item-statement {
+    margin: 0;
+    font-family: "Google Sans", sans-serif;
+    font-size: 1.1875rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .ind-item-attr {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  /* Thẻ giá trị — nền thẻ thường, chữ đậm. */
+  .ind-item--value {
+    padding: 1.5rem;
+  }
+  .ind-item-value {
+    margin: 0;
+    font-family: "Google Sans", sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: hsl(var(--foreground));
+  }
+
+  /* ── Responsive ────────────────────────────────────────── */
+  /* ≤1080px (gồm iPad ngang 1024 + laptop hẹp): xếp dọc — nội dung trên,
+     chồng thẻ dưới. Trên mốc này rãnh trái mới đủ rộng cho lưới 2 cột thẻ. */
+  @media (max-width: 1080px) {
+    .ind-split {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+  }
+
+  /* Mobile: GIỮ lưới thẻ ngành 2 cột (đỡ dài) — chỉ thu gọn padding. Chồng ảnh
+     giữ kiểu nghiêng + đè (như bản tham khảo) nhưng NHỎ lại cho vừa màn hẹp.
+     transform:rotate(var(--r)) vẫn kế thừa từ .ind-item nên KHÔNG đặt none. */
+  @media (max-width: 640px) {
+    .ind-card {
+      padding: 0.875rem;
+    }
+    .ind-item {
+      width: 70%;
+      /* bỏ lệch ngang theo --ml (tuned cho khung rộng); dùng align-self so le */
+      margin-left: 0;
+      margin-top: -2rem;
+    }
+    .ind-item:first-child {
+      margin-top: 0;
+    }
+    /* Mobile chỉ hiện 2 ảnh đầu; ảnh thứ 3 trở đi ẩn cho ngắn. */
+    .ind-item:nth-child(n + 3) {
+      display: none;
+    }
+    /* So le trái/phải luân phiên → chồng nghiêng như xếp tay. */
+    .ind-item:nth-child(odd) {
+      align-self: flex-start;
+    }
+    .ind-item:nth-child(even) {
+      align-self: flex-end;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ind-card,
+    .ind-card-arrow,
+    .ind-item {
+      transition: none;
+    }
+    .ind-card:hover {
+      transform: none;
+    }
+    .ind-card:hover .ind-card-arrow {
+      transform: none;
+    }
+    /* Giữ độ nghiêng nhưng bỏ chuyển động hover. */
+    .ind-item:hover {
+      transform: rotate(var(--r, 0deg));
+    }
+  }
+</style>

@@ -1,0 +1,96 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import PageHero from "../../components/PageHero.astro";
+import FeaturesSection from "../../components/FeaturesSection.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { SITE } from "../../config/site";
+import { NAV } from "../../config/nav";
+import { getLangFromUrl, useTranslatedPath } from "../../i18n/utils";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const translatePath = useTranslatedPath(getLangFromUrl(Astro.url));
+
+const seo = {
+  title: `Solutions — ${SITE.brandName}`,
+  description: "AI solutions tailored to your industry and business problem.",
+};
+
+// PLACEHOLDER CONTENT — replace with your real solutions.
+const solutions = [
+  {
+    title: "Retail & E-commerce",
+    description:
+      "Recommend products, check stock and close orders inside the conversation.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Education & Training",
+    description:
+      "Answer admissions questions, guide students and capture sign-ups.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Real Estate",
+    description:
+      "Qualify leads, share listings and book viewings automatically.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Services & Customer Care",
+    description:
+      "Take load off your support desk by resolving repetitive questions.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Marketing & Content",
+    description:
+      "Produce articles, product copy and social content at scale.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+  {
+    title: "Multi-branch Businesses",
+    description:
+      "Centralised control, per-branch permissions and consolidated reporting.",
+    image: null,
+    link: translatePath(NAV.contact),
+  },
+];
+---
+
+<BaseLayout title={seo.title} description={seo.description} lang="en">
+  <Header />
+
+  <PageHero
+    badge="Solutions"
+    title="AI solutions for"
+    titleHighlight=" every industry"
+    subtitle="One platform, configured differently for each business problem. Detailed content is on the way."
+  />
+
+  <FeaturesSection
+    badge="By industry"
+    title="We have deployed across"
+    titleHighlight=" many sectors"
+    description="Pick the closest fit, or talk to us and we will tailor a solution."
+    button1Text="Talk to us"
+    button1Url={translatePath(NAV.contact)}
+    button2Text="See products"
+    button2Url={translatePath(NAV.services)}
+    featuresList={solutions}
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

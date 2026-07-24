@@ -1,0 +1,84 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import PageHero from "../../components/PageHero.astro";
+import ProductsGrid from "../../components/ProductsGrid.astro";
+import ProductPricing from "../../components/ProductPricing.astro";
+import CtaBand from "../../components/CtaBand.astro";
+import { SITE } from "../../config/site";
+import { navProducts } from "../../config/products";
+import { SERVICES } from "../../config/services";
+import { useTranslations, useTranslatedPath } from "../../i18n/utils";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "s-maxage=3600, stale-while-revalidate=86400",
+);
+
+const lang = "en" as const;
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+
+const seo = {
+  title: `Services — ${SITE.brandName}`,
+  description:
+    "The VarenoAI ecosystem of AI products: ChatVareno for sales & support, ContentAI for content production. See pricing by product.",
+};
+
+const P = SERVICES.pricing;
+const tiersById = P.tiers as Record<string, any>;
+
+const pricingProducts = navProducts().map((p) => {
+  const raw = tiersById[p.id];
+  return {
+    id: p.id,
+    name: p.name,
+    icon: p.icon,
+    status: p.status,
+    tiers: raw
+      ? raw.map((ti: any) => ({
+          name: ti.name[lang],
+          price: ti.price[lang],
+          period: ti.period[lang],
+          desc: ti.desc[lang],
+          features: ti.features[lang].slice(),
+          highlighted: ti.highlighted ?? false,
+          ctaLabel: ti.ctaLabel[lang],
+          ctaHref: translatePath(ti.ctaHref),
+        }))
+      : null,
+  };
+});
+---
+
+<BaseLayout title={seo.title} description={seo.description} lang="en">
+  <Header />
+
+  <PageHero
+    badge="Services"
+    title="AI products by"
+    titleHighlight=" VarenoAI"
+    subtitle="Each product solves one specific problem. Use them on their own, or together on a single platform."
+  />
+
+  <ProductsGrid />
+
+  <ProductPricing
+    eyebrow={P.eyebrow[lang]}
+    heading={P.heading[lang]}
+    subheading={P.subheading[lang]}
+    note={P.note[lang]}
+    comingSoonBadge={t("products.comingSoon")}
+    comingSoonTitle={P.comingSoon.title[lang]}
+    comingSoonDesc={P.comingSoon.desc[lang]}
+    comingSoonCta={P.comingSoon.ctaLabel[lang]}
+    comingSoonHref={translatePath(P.comingSoon.ctaHref)}
+    popularLabel="Popular"
+    products={pricingProducts}
+  />
+
+  <CtaBand />
+
+  <Footer />
+</BaseLayout>

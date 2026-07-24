@@ -1,0 +1,488 @@
+/* Google Fonts được load qua <link> trong BaseLayout.astro (preconnect + preload, không chặn render) */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Tailwind v4 theme tokens ────────────────────────────── */
+@theme {
+  --font-display: "Google Sans", sans-serif;
+  --font-body: "Roboto", sans-serif;
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --radius: 0.75rem;
+
+  /* Animations */
+  --animate-fade-in-up: fade-in-up 0.6s ease-out forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+  --animate-shimmer: shimmer 3s ease-in-out infinite;
+
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+}
+
+/* ── CSS Variables (Light / Dark) ────────────────────────── */
+:root,
+.light {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  /* Màu thương hiệu duy nhất: #2463eb */
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 210 40% 94%;
+  --secondary-foreground: 222 47% 11%;
+
+  --muted: 210 40% 94%;
+  --muted-foreground: 215 16% 47%;
+
+  /* Một màu nhấn duy nhất — accent trùng primary để không còn gradient
+     xanh→tím. Mọi linear/conic-gradient(primary, accent) tự phẳng thành
+     #2463eb đặc. Muốn có màu nhấn thứ hai, chỉ cần đổi lại giá trị ở đây. */
+  --accent: 221 83% 53%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 214 20% 85%;
+  --input: 214 20% 85%;
+  --ring: 221 83% 53%;
+
+  /* ── Thang độ nổi (elevation) ──────────────────────────────
+     CỐ Ý không đặt trong @theme: Tailwind v4 map --shadow-* thành
+     utility shadow-*, nên khai báo --shadow-lg ở đó sẽ ghi đè
+     `shadow-lg` mà LanguageSwitcher.astro đang dùng.
+     Bóng nhuộm theo --foreground (tự đổi ở dark) thay vì đen thuần. */
+  --elev-1: 0 4px 12px -6px hsl(var(--foreground) / 0.12);
+  --elev-2: 0 18px 40px -16px hsl(var(--foreground) / 0.22);
+  --elev-3: 0 30px 80px -40px hsl(var(--foreground) / 0.3);
+
+  /* ── Thang chữ ────────────────────────────────────────────
+     Trước đây mỗi section tự khai báo lại đúng hai clamp này. */
+  --fs-display: clamp(2.25rem, 5vw, 3.75rem);
+  --fs-h2: clamp(1.75rem, 4vw, 2.5rem);
+  --fs-lead: 1.0625rem;
+
+  /* ── Thang bo góc (Shape Consistency Lock) ────────────────
+     Một thang duy nhất cho cả trang. Nút 0.75rem, thẻ 1.25rem,
+     pill tròn hoàn toàn. Không thêm bán kính thứ tư. */
+  --shape-btn: 0.75rem;
+  --shape-card: 1.25rem;
+  --shape-pill: 9999px;
+}
+
+.dark {
+  --background: 222 47% 7%;
+  --foreground: 210 40% 96%;
+
+  --card: 222 40% 10%;
+  --card-foreground: 210 40% 96%;
+
+  --popover: 222 40% 10%;
+  --popover-foreground: 210 40% 96%;
+
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 222 30% 16%;
+  --secondary-foreground: 210 40% 96%;
+
+  --muted: 222 30% 14%;
+  --muted-foreground: 215 20% 55%;
+
+  /* Một màu nhấn duy nhất — xem chú thích ở khối :root */
+  --accent: 221 83% 53%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 222 20% 18%;
+  --input: 222 20% 18%;
+  --ring: 221 83% 53%;
+}
+
+/* ── Base styles ─────────────────────────────────────────── */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* ── Nền TOÀN TRANG ─────────────────────────────────────────
+   Một lớp sáng CỐ ĐỊNH nối dài "không khí" của hero ra cả trang: quầng xanh
+   --primary ở góc trên-trái và dưới-phải — đúng bố cục quầng của hero, nhưng
+   nhạt hơn nhiều để chữ luôn nét.
+
+   Vì sao position:fixed (không phải gradient trên body):
+     · Quầng NEO theo khung nhìn ⇒ cả trang như được chiếu sáng từ một nguồn cố
+       định, không bị kéo giãn hay lặp seam dọc theo trang dài.
+     · Rẻ hơn `background-attachment:fixed` (bị iOS bỏ qua) và không cần lớp blur.
+   Vì sao z-index:-1: màu nền đặc của body được đẩy lên canvas, nên pseudo này
+   nằm TRÊN màu nền nhưng DƯỚI mọi nội dung ⇒ không phải đụng z-index ở bất kỳ
+   section nào, chữ và thẻ vẫn vẽ đè lên trên bình thường.
+   pointer-events:none + tĩnh ⇒ không cản chuột, không tốn pin. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      48rem 42rem at 6% 4%,
+      hsl(var(--primary) / 0.11),
+      transparent 60%
+    ),
+    radial-gradient(
+      46rem 44rem at 97% 94%,
+      hsl(var(--primary) / 0.09),
+      transparent 58%
+    );
+}
+/* Người dùng yêu cầu giảm trong suốt ⇒ nền phẳng đặc, bỏ quầng. */
+@media (prefers-reduced-transparency: reduce) {
+  body::before {
+    display: none;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Header là position:fixed cao 4rem. Không có dòng này, mọi anchor (mục lục
+     bài blog dùng href="#id" thuần) nhảy tới tiêu đề rồi để header CHE MẤT nó.
+     Thêm 1rem thở, thành 5rem. */
+  scroll-padding-top: 5rem;
+  /* Giữ chỗ thanh cuộn. EcosystemShowcase khoá cuộn nền bằng `overflow:hidden`
+     khi thẻ sản phẩm mở rộng; không có dòng này thì thanh cuộn biến mất và cả
+     trang nhảy ngang ~15px ngay giữa lúc morph. Mọi trang đều dài hơn khung
+     nhìn nên thanh cuộn vốn đã luôn ở đó ⇒ đây gần như là no-op. */
+  scrollbar-gutter: stable;
+}
+
+/* `scroll-behavior: smooth` cũng là chuyển động: người bật "giảm chuyển động"
+   phải được nhảy thẳng tới đích, không trượt qua cả trang. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ── Lenis (cuộn mượt quán tính) ──────────────────────────────
+   src/scripts/smooth-scroll.ts nạp Lenis; nó tự gắn .lenis / .lenis-smooth lên
+   <html>. Lenis cuộn CHÍNH document thật nên không cần đổi cấu trúc DOM.
+   · scroll-behavior:auto: khi Lenis đang smoothing thì TẮT smooth native để
+     hai cơ chế không tranh nhau (Lenis tự lo cuộn anchor).
+   · [data-lenis-prevent]: vùng cuộn con (mục lục) — chặn "nảy" lan ra nền.
+   Khi Lenis KHÔNG bật (giảm chuyển động / cảm ứng), các luật này vô hại vì
+   không có class .lenis, và `html{scroll-behavior:smooth}` phía trên vẫn lo
+   cuộn anchor như cũ. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ── Giữ FPS khi cuộn: tắt backdrop-filter lúc đang cuộn ───────
+   `backdrop-filter: blur()` (header, glass-card, nhiều section) phải LẤY MẪU +
+   LÀM MỜ LẠI vùng phía sau MỖI khung hình khi trang cuộn → thủ phạm số 1 gây
+   giật ở giao diện nhiều kính mờ; Lenis làm bước cuộn mượt nhưng không cứu được
+   jank vẽ này. smooth-scroll.ts gắn .is-scrolling lên <html> khi đang cuộn (gỡ
+   sau ~140ms ngừng); lúc đó ta bỏ blur ở MỌI phần tử. Cuộn nhanh mắt không nhận
+   ra thiếu blur, nhưng khung hình nhẹ hẳn ⇒ mượt. Khi dừng, blur trở lại.
+   Dùng `*` để phủ cả class kính scoped của từng component (feature-card,
+   privacy, umbrella…) mà không phải liệt kê tên. */
+html.is-scrolling *,
+html.is-scrolling *::before,
+html.is-scrolling *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* Với thẻ kính có `transition: all`, bỏ blur sẽ "phai" dần thay vì tắt ngay
+   (0.3s đầu vẫn blur = vẫn giật). Ép tắt transition RIÊNG các thẻ đó để lợi ích
+   có ngay khung hình đầu. KHÔNG áp lên `*`: reveal animation (.scroll-animate)
+   kích hoạt ngay trong lúc cuộn, tắt transition sẽ khiến nó "nhảy" thay vì mượt. */
+html.is-scrolling .glass-card-hover,
+html.is-scrolling [class*="glass"] {
+  transition: none !important;
+}
+
+/* ── Component utility classes ───────────────────────────── */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.glass-card {
+  background-color: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid hsl(var(--foreground) / 0.08);
+  border-radius: 1rem;
+}
+
+.glass-card-hover {
+  background-color: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(24px);
+  border: 1px solid hsl(var(--foreground) / 0.08);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+.glass-card-hover:hover {
+  border-color: hsl(var(--primary) / 0.3);
+  box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.15);
+  transform: translateY(-4px);
+}
+
+.glow-text {
+  color: hsl(var(--primary));
+  filter: drop-shadow(0 0 20px hsl(var(--primary) / 0.5));
+}
+
+/* Giữ tên class (đang dùng ở nhiều trang) nhưng nay là MÀU ĐẶC #2463eb,
+   không còn tô chữ bằng gradient. */
+.gradient-text {
+  color: hsl(var(--primary));
+}
+
+.dot-pattern {
+  background-image: radial-gradient(
+    hsl(var(--foreground) / 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+.gradient-blob {
+  filter: blur(120px);
+  opacity: 0.4;
+}
+
+/* ── Button styles ───────────────────────────────────────── */
+.btn-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  background: hsl(var(--primary));
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+.btn-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -5px hsl(var(--primary) / 0.4);
+}
+
+.btn-hero-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+.btn-hero-ghost:hover {
+  border-color: hsl(var(--primary) / 0.4);
+  background: hsl(var(--primary) / 0.05);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  width: 100%;
+}
+.btn-outline:hover {
+  border-color: hsl(var(--primary) / 0.4);
+  background: hsl(var(--primary) / 0.05);
+}
+
+.st1 {
+  fill: #414042 !important;
+}
+
+/* Dark mode - chữ màu trắng */
+.dark .st1 {
+  fill: #ffffff !important;
+}
+
+/* ── Keyframes for PrivacySection ────────────────────────── */
+@keyframes orbit-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes lock-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ── Scroll Animations ────────────────────────────────────── */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(35px);
+  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-animate--visible {
+  opacity: 1;
+  transform: translateY(0);
+  /* BẮT BUỘC. BaseLayout gắn .scroll-animate cho MỌI <section> và không bao giờ
+     gỡ ra, nên `will-change` ở trên sẽ giữ sống một lớp compositor rộng bằng cả
+     trang cho từng section suốt vòng đời trang (trang chủ: 6 section + footer).
+     Reveal xong là hết việc — trả lớp lại cho trình duyệt. */
+  will-change: auto;
+}
+
+/* IntersectionObserver trong BaseLayout gắn .scroll-animate cho MỌI <section>.
+   Nếu không có nhánh này, người bật "giảm chuyển động" vẫn bị trượt + mờ dần. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-animate {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
+/* Stagger cho phần tử trong grid: đặt inline style="--i: {index}" ở markup.
+   Thuần CSS, không JS. */
+.stagger-in {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stagger-in {
+    animation: none;
+  }
+}
+
