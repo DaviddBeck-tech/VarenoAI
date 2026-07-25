@@ -1,5 +1,5 @@
 import createGlobe from "cobe";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * CtaGlobe — quả cầu chấm bi WebGL (thư viện `cobe`) làm TRANG TRÍ ở góc trên
@@ -10,6 +10,8 @@ import { useEffect, useRef } from "react";
  *    cuộn trang như bản gốc có kéo-thả.
  *  • Theme-aware: đọc class `dark` trên <html> và nghe sự kiện `theme-changed`
  *    (do ThemeToggle phát) để đổi bảng màu sáng/tối ngay tại chỗ.
+ *  • Light: đại dương trong suốt bằng SVG filter knockout trên wrapper
+ *    (cobe không có alpha cho baseColor — filter biến pixel sáng → alpha 0).
  *  • Tôn trọng prefers-reduced-motion: vẽ một khung tĩnh, không xoay.
  *  • Marker gom về Việt Nam + Đông Nam Á, đúng định vị "AI cho doanh nghiệp Việt".
  *
@@ -35,13 +37,12 @@ interface Palette {
 const THEMES: Record<"light" | "dark", Palette> = {
   light: {
     dark: 0,
-    // base/glow trắng; bóng xám mép do shader cobe (pow(i,.4)) — xử lý bằng
-    // mix-blend-mode: multiply ở .cta-globe (CtaBand), không phải lớp phủ CSS.
+    // base/glow trắng → multiply trên wrapper khiến trắng×nền = nền (lộ gradient).
     diffuse: 1.2,
-    mapBrightness: 5,
+    mapBrightness: 5.5,
     mapBaseBrightness: 0,
     baseColor: [1, 1, 1],
-    markerColor: [0.14, 0.39, 0.92], // xanh thương hiệu
+    markerColor: [0.14, 0.39, 0.92],
     glowColor: [1, 1, 1],
     opacity: 1,
   },
@@ -50,10 +51,10 @@ const THEMES: Record<"light" | "dark", Palette> = {
     diffuse: 1.2,
     mapBrightness: 4,
     mapBaseBrightness: 0.05,
-    baseColor: [0.13, 0.17, 0.28], // navy tối, hoà vào nền dark
-    markerColor: [0.35, 0.58, 1], // xanh sáng hơn để nổi trên nền tối
+    baseColor: [0.13, 0.17, 0.28],
+    markerColor: [0.35, 0.58, 1],
     glowColor: [0.14, 0.22, 0.48],
-    opacity: 1, // luôn set rõ để không bị giữ opacity light khi đổi theme
+    opacity: 1,
   },
 };
 
@@ -70,8 +71,14 @@ const MARKERS: { location: Vec2; size: number }[] = [
   { location: [51.5074, -0.1278], size: 0.05 }, // London
 ];
 
+function readTheme(): "light" | "dark" {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
 export default function CtaGlobe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [theme, setTheme] = useState<"light" | "dark">(readTheme);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -79,11 +86,8 @@ export default function CtaGlobe() {
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let width = canvas.offsetWidth;
-    let phi = 0.6; // xoay sẵn để châu Á hướng ra trước ngay từ khung đầu
+    let phi = 0.6;
     let raf = 0;
-
-    const currentTheme = () =>
-      document.documentElement.classList.contains("dark") ? "dark" : "light";
 
     const globe = createGlobe(canvas, {
       devicePixelRatio: 2,
@@ -91,32 +95,34 @@ export default function CtaGlobe() {
       height: width * 2,
       phi,
       theta: 0.28,
-      mapSamples: 20000, // dày hơn cho quả cầu cỡ lớn ở góc CtaBand
+      mapSamples: 20000,
       markers: MARKERS,
-      ...THEMES[currentTheme()],
+      ...THEMES[readTheme()],
     });
 
     const draw = () =>
       globe.update({ phi, width: width * 2, height: width * 2 });
 
     const frame = () => {
-      if (!reduce) phi += 0.004; // trôi chậm cho một chi tiết trang trí êm
+      if (!reduce) phi += 0.004;
       draw();
       raf = requestAnimationFrame(frame);
     };
 
     const onResize = () => {
       width = canvas.offsetWidth;
-      if (reduce) draw(); // khi tĩnh, tự vẽ lại theo kích thước mới
+      if (reduce) draw();
     };
 
-    // Đổi theme: cập nhật màu tại chỗ, không dựng lại WebGL context.
-    const applyTheme = () => globe.update({ ...THEMES[currentTheme()] });
+    const applyTheme = () => {
+      const next = readTheme();
+      setTheme(next);
+      globe.update({ ...THEMES[next] });
+    };
 
     if (reduce) draw();
     else raf = requestAnimationFrame(frame);
 
-    // Hiện dần sau khung đầu để tránh nháy canvas rỗng.
     requestAnimationFrame(() => {
       canvas.style.opacity = "1";
     });
@@ -132,17 +138,35 @@ export default function CtaGlobe() {
     };
   }, []);
 
+  /* Light: SVG filter #cta-globe-ocean-knockout (CtaBand) — pixel sáng → alpha 0
+     để lộ nền thật. Tin cậy hơn mix-blend-mode trên WebGL canvas. */
+  const lightBlend =
+    theme === "light"
+      ? ({
+          filter: "url(#cta-globe-ocean-knockout)",
+          transform: "translateZ(0)",
+        } as const)
+      : undefined;
+
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
+    <div
+      className="cta-globe-blend"
       style={{
         width: "100%",
         height: "100%",
-        opacity: 0,
-        transition: "opacity 0.8s ease",
-        contain: "layout paint size",
+        ...lightBlend,
       }}
-    />
+    >
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        style={{
+          width: "100%",
+          height: "100%",
+          opacity: 0,
+          transition: "opacity 0.8s ease",
+        }}
+      />
+    </div>
   );
 }

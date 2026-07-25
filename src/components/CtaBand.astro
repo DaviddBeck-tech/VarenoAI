@@ -54,6 +54,34 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
         <CtaGlobe client:visible />
       </div>
 
+      {/* Filter ẩn: biến đại dương trắng → alpha 0 (lộ nền). Chỉ dùng ở light. */}
+      <svg class="cta-globe-filters" aria-hidden="true" focusable="false">
+        <defs>
+          <filter
+            id="cta-globe-ocean-knockout"
+            color-interpolation-filters="sRGB"
+            x="-5%"
+            y="-5%"
+            width="110%"
+            height="110%"
+          >
+            <feColorMatrix
+              in="SourceGraphic"
+              type="luminanceToAlpha"
+              result="lum"
+            ></feColorMatrix>
+            <feComponentTransfer in="lum" result="mask">
+              <feFuncA type="table" tableValues="1 1 0.9 0.2 0"></feFuncA>
+            </feComponentTransfer>
+            <feComposite
+              in="SourceGraphic"
+              in2="mask"
+              operator="in"
+            ></feComposite>
+          </filter>
+        </defs>
+      </svg>
+
       <div class="cta-content">
         <h2 class="cta-title">{title}</h2>
         {subtitle && <p class="cta-subtitle">{subtitle}</p>}
@@ -134,7 +162,7 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
   .cta-inner {
     position: relative;
     overflow: hidden;
-    isolation: isolate;
+    /* Không isolation:isolate — nó chặn mix-blend-mode của quả cầu lộ nền. */
     padding: clamp(2rem, 5vw, 3.75rem);
     border-radius: 1.5rem;
     border: 1px solid hsl(var(--primary) / 0.16);
@@ -156,10 +184,18 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
     box-shadow: 0 26px 60px -40px hsl(var(--primary) / 0.3);
   }
 
+  .cta-globe-filters {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
   .cta-decor {
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     overflow: hidden;
     pointer-events: none;
   }
@@ -178,10 +214,11 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
   }
 
   /* Quả cầu neo ở góc trên-phải, tràn ra ngoài cho cảm giác "cắt khung".
-     z-index:0 → trên nền + watermark(-1) nhưng dưới nội dung(1). */
+     z-index:1 → trên watermark(0), dưới chữ(2). Blend trong suốt gắn ở
+     .cta-globe-blend (CtaGlobe.tsx), không gắn trực tiếp WebGL canvas. */
   .cta-globe {
     position: absolute;
-    z-index: 0;
+    z-index: 1;
     top: clamp(-15rem, -15vw, -10rem);
     right: clamp(-7rem, -6vw, -3rem);
     width: clamp(18rem, 46vw, 37rem);
@@ -190,7 +227,7 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
   }
 
   /* Đường tròn khớp bán kính quả cầu cobe (disk a≤0.64 → r=0.8 → inset 10%).
-     Chỉ cần ở light: đại dương trắng nên mất mép hình cầu. */
+     Light: đại dương trong suốt nên cần mép để đọc hình cầu. */
   :global(html:not(.dark)) .cta-globe::after {
     content: "";
     position: absolute;
@@ -201,16 +238,9 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
     pointer-events: none;
   }
 
-  /* Light: multiply chỉ trên canvas — trắng/xám tan vào nền; chấm đen + marker giữ.
-     Không gắn blend lên .cta-globe kẻo đường viền ::after cũng bị multiply. */
-  :global(html:not(.dark)) .cta-globe :global(canvas) {
-    mix-blend-mode: multiply;
-    filter: brightness(1.25);
-  }
-
   .cta-content {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     max-width: 42rem;
   }
 
