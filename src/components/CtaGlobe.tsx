@@ -24,31 +24,36 @@ interface Palette {
   dark: number;
   diffuse: number;
   mapBrightness: number;
+  mapBaseBrightness?: number;
   baseColor: Vec3;
   markerColor: Vec3;
   glowColor: Vec3;
+  opacity?: number;
 }
 
 // --primary = 221 83% 53% ≈ rgb(36,99,235). Marker/quầng sáng bám màu này.
 const THEMES: Record<"light" | "dark", Palette> = {
   light: {
     dark: 0,
-    // Cầu XANH-XÁM mềm (không phải trắng chói) để tách khỏi nền card gần-trắng
-    // và đọc ngay ra "quả cầu / thế giới", đồng thời buộc màu về hệ xanh thương
-    // hiệu. diffuse thấp làm dịu điểm sáng gắt ở tâm.
-    diffuse: 0.65,
-    mapBrightness: 2.6,
-    baseColor: [0.82, 0.87, 0.96], // xanh-xám nhạt
+    // base/glow trắng; bóng xám mép do shader cobe (pow(i,.4)) — xử lý bằng
+    // mix-blend-mode: multiply ở .cta-globe (CtaBand), không phải lớp phủ CSS.
+    diffuse: 1.2,
+    mapBrightness: 5,
+    mapBaseBrightness: 0,
+    baseColor: [1, 1, 1],
     markerColor: [0.14, 0.39, 0.92], // xanh thương hiệu
-    glowColor: [0.5, 0.68, 1], // quầng xanh mềm
+    glowColor: [1, 1, 1],
+    opacity: 1,
   },
   dark: {
     dark: 1,
     diffuse: 1.2,
     mapBrightness: 4,
+    mapBaseBrightness: 0.05,
     baseColor: [0.13, 0.17, 0.28], // navy tối, hoà vào nền dark
     markerColor: [0.35, 0.58, 1], // xanh sáng hơn để nổi trên nền tối
     glowColor: [0.14, 0.22, 0.48],
+    opacity: 1, // luôn set rõ để không bị giữ opacity light khi đổi theme
   },
 };
 

@@ -189,6 +189,25 @@ const telHref = firstPhone ? `tel:${firstPhone.replace(/[^0-9+]/g, "")}` : null;
     pointer-events: none;
   }
 
+  /* Đường tròn khớp bán kính quả cầu cobe (disk a≤0.64 → r=0.8 → inset 10%).
+     Chỉ cần ở light: đại dương trắng nên mất mép hình cầu. */
+  :global(html:not(.dark)) .cta-globe::after {
+    content: "";
+    position: absolute;
+    inset: 10%;
+    border-radius: 50%;
+    border: 1.5px solid hsl(var(--primary) / 0.35);
+    box-shadow: 0 0 0 1px hsl(var(--foreground) / 0.06);
+    pointer-events: none;
+  }
+
+  /* Light: multiply chỉ trên canvas — trắng/xám tan vào nền; chấm đen + marker giữ.
+     Không gắn blend lên .cta-globe kẻo đường viền ::after cũng bị multiply. */
+  :global(html:not(.dark)) .cta-globe :global(canvas) {
+    mix-blend-mode: multiply;
+    filter: brightness(1.25);
+  }
+
   .cta-content {
     position: relative;
     z-index: 1;

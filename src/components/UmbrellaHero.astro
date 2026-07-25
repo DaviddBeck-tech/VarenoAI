@@ -24,9 +24,7 @@ import shot1 from "../assets/1.png";
 import shot2 from "../assets/2.png";
 import shot3 from "../assets/3.png";
 import shot4 from "../assets/4.png";
-import shot5 from "../assets/1.jpg";
 import shot6 from "../assets/2.jpg";
-import shot7 from "../assets/3.jpg";
 import shot8 from "../assets/5.jpg";
 
 // CỐ Ý dùng <img> thay vì <Image> của astro:assets: astro.config.mjs bật
@@ -59,19 +57,15 @@ const {
   btn2Link,
 } = Astro.props;
 
-// Giữ nguyên hình học OrbitCluster. Số thẻ trên chu vi quyết định mật độ trong
-// vùng nhìn (~30% path): 9 thẻ ≈ luôn ~3 ảnh hiện (cùng mật độ lúc còn mascot).
+// 6 thẻ trên chu vi → khoảng cách thưa hơn; luôn ~2 ảnh trong vùng nhìn.
 // Không gắn badge/chip — chỉ hiện ảnh mockup.
 const wheelShots = [
   { img: shot1, alt: imageAlt, badge: "" },
   { img: shot2, alt: "", badge: "" },
   { img: shot3, alt: "", badge: "" },
   { img: shot4, alt: "", badge: "" },
-  { img: shot5, alt: "", badge: "" },
   { img: shot6, alt: "", badge: "" },
-  { img: shot7, alt: "", badge: "" },
   { img: shot8, alt: "", badge: "" },
-  { img: shot5, alt: "", badge: "" },
 ];
 
 // Props cho island React OrbitCluster: chỉ giá trị SERIALIZABLE (src/width/…),
@@ -168,7 +162,7 @@ const charSpans = (text: string) => {
       <OrbitCluster
         client:visible
         images={orbitImages}
-        bottomAnchorSelector=".uhero-btn--ghost"
+        turnAtViewport={0.7}
       />
     </div>
 

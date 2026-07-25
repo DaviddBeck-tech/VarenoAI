@@ -3,10 +3,8 @@
 // Bấm tab một sản phẩm → hiện bảng giá của sản phẩm đó. Sản phẩm coming-soon
 // (ContentAI) → hiện trạng thái "Sắp ra mắt", KHÔNG dựng bảng giá giả.
 //
-// CỐ Ý KHÔNG tái dùng PricingSection: component đó hardcode id ("pricing",
-// "pricing-toggle-btn"...), render 2 lần trên một trang là trùng id ⇒ toggle
-// hỏng. Ở đây tự chứa, id/scope theo instance, và toggle tháng/năm bị bỏ (giá
-// tạm chỉ theo tháng) cho gọn.
+// Billing toggle Monthly/Yearly scoped theo .pp-section (không dùng id toàn cục
+// như PricingSection) để an toàn khi có nhiều instance.
 //
 // A11y: role=tablist/tab/tabpanel, roving tabindex, phím mũi tên trái/phải,
 // deep-link #<id sản phẩm>. Nội dung mọi panel NẰM SẴN trong DOM (chỉ ẩn bằng
@@ -17,6 +15,9 @@ interface Tier {
   name: string;
   price: string;
   period: string;
+  priceYearly?: string | null;
+  periodYearly?: string | null;
+  discountBadge?: string | null;
   desc: string;
   features: string[];
   highlighted?: boolean;
@@ -43,6 +44,9 @@ interface Props {
   comingSoonCta: string;
   comingSoonHref: string;
   popularLabel: string;
+  monthlyLabel: string;
+  yearlyLabel: string;
+  billingToggleAria: string;
   products: ProductTab[];
 }
 
@@ -57,8 +61,13 @@ const {
   comingSoonCta,
   comingSoonHref,
   popularLabel,
+  monthlyLabel,
+  yearlyLabel,
+  billingToggleAria,
   products,
 } = Astro.props;
+
+const hasPaidTiers = products.some((p) => p.tiers && p.tiers.length > 0);
 ---
 
 <section class="pp-section" id="pricing">
@@ -93,6 +102,29 @@ const {
     </div>
 
     {
+      hasPaidTiers && (
+        <div class="pp-billing">
+          <span class="pp-billing-label" data-pp-label-monthly>
+            {monthlyLabel}
+          </span>
+          <button
+            type="button"
+            class="pp-billing-switch"
+            role="switch"
+            aria-checked="false"
+            aria-label={billingToggleAria}
+            data-pp-billing-toggle
+          >
+            <span class="pp-billing-knob" data-pp-billing-knob></span>
+          </button>
+          <span class="pp-billing-label" data-pp-label-yearly>
+            {yearlyLabel}
+          </span>
+        </div>
+      )
+    }
+
+    {
       products.map((p, i) => (
         <div
           role="tabpanel"
@@ -103,17 +135,38 @@ const {
           hidden={i !== 0}
         >
           {p.tiers && p.tiers.length > 0 ? (
-            <div class="pp-grid">
+            <div class="pp-grid" data-pp-grid>
               {p.tiers.map((tier) => (
                 <div class:list={["pp-card", { "pp-card--hl": tier.highlighted }]}>
                   {tier.highlighted && (
                     <span class="pp-card-pop">{popularLabel}</span>
                   )}
-                  <h3 class="pp-card-name">{tier.name}</h3>
+                  <h3 class="pp-card-name">
+                    {tier.name}
+                    {tier.discountBadge && (
+                      <span class="pp-discount pp-yearly-only">
+                        {tier.discountBadge}
+                      </span>
+                    )}
+                  </h3>
                   <p class="pp-card-desc">{tier.desc}</p>
                   <div class="pp-card-price">
-                    <span class="pp-price">{tier.price}</span>
-                    <span class="pp-period">{tier.period}</span>
+                    <span class="pp-monthly-only">
+                      <span class="pp-price">{tier.price}</span>
+                      {tier.period && (
+                        <span class="pp-period">{tier.period}</span>
+                      )}
+                    </span>
+                    <span class="pp-yearly-only">
+                      <span class="pp-price">
+                        {tier.priceYearly || tier.price}
+                      </span>
+                      {(tier.periodYearly || tier.period) && (
+                        <span class="pp-period">
+                          {tier.periodYearly || tier.period}
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <ul class="pp-features" role="list">
                     {tier.features.map((f) => (
@@ -164,7 +217,6 @@ const {
       const panels = Array.from(
         section.querySelectorAll<HTMLElement>('[role="tabpanel"]'),
       );
-      if (tabs.length === 0) return;
 
       function activate(id: string, focus = false) {
         tabs.forEach((t) => {
@@ -189,9 +241,37 @@ const {
         });
       });
 
-      // Deep-link: /services#<id sản phẩm> mở đúng tab.
       const hash = location.hash.replace("#", "");
       if (hash && tabs.some((t) => t.dataset.ppTab === hash)) activate(hash);
+
+      // ── Billing toggle Monthly ↔ Yearly ───────────────────────
+      const toggle = section.querySelector<HTMLButtonElement>(
+        "[data-pp-billing-toggle]",
+      );
+      const knob = section.querySelector<HTMLElement>("[data-pp-billing-knob]");
+      const labelMonthly = section.querySelector<HTMLElement>(
+        "[data-pp-label-monthly]",
+      );
+      const labelYearly = section.querySelector<HTMLElement>(
+        "[data-pp-label-yearly]",
+      );
+      if (!toggle) return;
+
+      const setYearly = (on: boolean) => {
+        section.classList.toggle("is-yearly", on);
+        toggle.setAttribute("aria-checked", String(on));
+        knob?.classList.toggle("is-on", on);
+        labelMonthly?.classList.toggle("is-active", !on);
+        labelYearly?.classList.toggle("is-active", on);
+      };
+
+      // Tránh gắn listener trùng khi astro:page-load chạy lại.
+      if (toggle.dataset.ppBound === "1") return;
+      toggle.dataset.ppBound = "1";
+      setYearly(false);
+      toggle.addEventListener("click", () => {
+        setYearly(toggle.getAttribute("aria-checked") !== "true");
+      });
     });
   }
 
@@ -202,7 +282,6 @@ const {
 <style>
   .pp-section {
     padding: 5rem 0;
-    /* Nền wash một sắc thương hiệu, giống PricingSection để "cảm giác giá". */
     background: linear-gradient(
       180deg,
       hsl(var(--background)) 0%,
@@ -251,17 +330,15 @@ const {
     margin: 0;
   }
 
-  /* ── Tab switcher: segmented control giữa trang ─────────────── */
+  /* ── Tab switcher ───────────────────────────────────────────── */
   .pp-tabs {
-    display: inline-flex;
+    display: flex;
     gap: 0.375rem;
-    margin: 0 auto 2.5rem;
+    margin: 0 auto 1.75rem;
     padding: 0.375rem;
     border-radius: 999px;
     border: 1px solid hsl(var(--border) / 0.8);
     background: hsl(var(--card));
-    /* căn giữa khối inline-flex */
-    display: flex;
     width: fit-content;
     flex-wrap: wrap;
     justify-content: center;
@@ -310,6 +387,79 @@ const {
     color: hsl(var(--primary-foreground));
   }
 
+  /* ── Billing toggle (Monthly | switch | Yearly) ─────────────── */
+  .pp-billing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0 auto 2.25rem;
+  }
+  .pp-billing-label {
+    font-family: "Roboto", sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    transition: color 0.2s ease, font-weight 0.2s ease;
+  }
+  .pp-billing-label.is-active {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  .pp-billing-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 3.5rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: hsl(var(--primary) / 0.35);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .pp-section.is-yearly .pp-billing-switch {
+    background: hsl(var(--primary));
+  }
+  .pp-billing-switch:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  .pp-billing-knob {
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: hsl(var(--background));
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.18);
+    transform: translateX(0.25rem);
+    transition: transform 0.2s ease;
+  }
+  .pp-billing-knob.is-on {
+    transform: translateX(1.95rem);
+  }
+
+  /* Hiện/ẩn giá theo kỳ */
+  .pp-monthly-only {
+    display: inline;
+  }
+  .pp-yearly-only {
+    display: none;
+  }
+  .pp-section.is-yearly .pp-monthly-only {
+    display: none;
+  }
+  .pp-section.is-yearly .pp-yearly-only {
+    display: inline;
+  }
+  .pp-discount.pp-yearly-only {
+    display: none;
+  }
+  .pp-section.is-yearly .pp-discount.pp-yearly-only {
+    display: inline-flex;
+  }
+
   /* ── Lưới tiers ─────────────────────────────────────────────── */
   .pp-grid {
     display: grid;
@@ -356,11 +506,32 @@ const {
     white-space: nowrap;
   }
   .pp-card-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
     font-family: "Google Sans", sans-serif;
     font-size: 1.05rem;
     font-weight: 700;
     color: hsl(var(--foreground));
     margin: 0 0 0.2rem;
+  }
+  .pp-discount {
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(142 45% 32%);
+    background: hsl(142 50% 92%);
+    border: 1px solid hsl(142 40% 80%);
+  }
+  :global(.dark) .pp-discount {
+    color: hsl(142 50% 70%);
+    background: hsl(142 40% 18% / 0.55);
+    border-color: hsl(142 35% 30%);
   }
   .pp-card-desc {
     font-size: 0.75rem;
@@ -386,6 +557,7 @@ const {
   .pp-period {
     font-size: 0.7rem;
     color: hsl(var(--muted-foreground));
+    margin-left: 0.2rem;
   }
   .pp-features {
     list-style: none;
@@ -451,7 +623,6 @@ const {
     outline-offset: 2px;
   }
 
-  /* ── Trạng thái coming-soon ─────────────────────────────────── */
   .pp-soon {
     display: flex;
     flex-direction: column;
@@ -511,7 +682,6 @@ const {
     margin: 2rem 0 0;
   }
 
-  /* ── Responsive ─────────────────────────────────────────────── */
   @media (max-width: 860px) {
     .pp-grid {
       grid-template-columns: 1fr;
@@ -530,7 +700,10 @@ const {
 
   @media (prefers-reduced-motion: reduce) {
     .pp-card,
-    .pp-cta {
+    .pp-cta,
+    .pp-billing-knob,
+    .pp-billing-switch,
+    .pp-billing-label {
       transition: none;
     }
     .pp-cta--primary:hover {

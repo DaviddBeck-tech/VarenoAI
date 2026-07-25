@@ -14,6 +14,8 @@
 //
 // Icon lưu dạng khoá, giải bằng bảng tra + fallback (giống ProductIcon.astro).
 
+import mascot19 from "../assets/Veno-mascot-19-Photoroom_preview_rev_1.png";
+
 interface Pillar {
   icon: string;
   title: string;
@@ -49,7 +51,18 @@ const VALUE_ICONS: Record<string, string> = {
       <h2 class="val-title">
         {title}{titleAccent && <span class="val-hl">{titleAccent}</span>}
       </h2>
-      {subtitle && <p class="val-subtitle">{subtitle}</p>}
+      <div class="val-copy">
+        {subtitle && <p class="val-subtitle">{subtitle}</p>}
+      </div>
+      <img
+        class="val-mascot"
+        src={mascot19.src}
+        width={mascot19.width}
+        height={mascot19.height}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
     </header>
 
     {/* <ol> vì thứ tự có nghĩa: các nguyên tắc được đánh số 01→N */}
@@ -140,12 +153,24 @@ const VALUE_ICONS: Record<string, string> = {
     color: hsl(var(--primary));
   }
 
+  .val-copy {
+    max-width: 40ch;
+  }
+
   .val-subtitle {
     font-size: var(--fs-lead);
     line-height: 1.7;
     color: hsl(var(--muted-foreground));
     margin: 0;
-    max-width: 40ch;
+  }
+
+  .val-mascot {
+    display: block;
+    width: min(100%, 22.88rem); /* 17.6rem + 30% */
+    height: auto;
+    margin: 1.75rem 0 0 auto; /* đẩy sang phải trong cột tuyên ngôn */
+    transform: translate(-5rem, -5rem); /* trái 5rem, lên 5rem */
+    filter: drop-shadow(0 14px 22px hsl(var(--primary) / 0.16));
   }
 
   /* ── Chồng card scroll-stacking ──────────────────────────────
@@ -311,6 +336,10 @@ const VALUE_ICONS: Record<string, string> = {
     }
     .val-card-top {
       margin-bottom: 1rem;
+    }
+    .val-mascot {
+      width: min(100%, 17.16rem); /* 13.2rem + 30% */
+      margin-top: 1.25rem;
     }
   }
 

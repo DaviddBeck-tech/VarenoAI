@@ -286,12 +286,12 @@ export const HOME = {
         featured: false,
       },
       {
-        name: { vi: "Chuỗi nhiều chi nhánh", en: "Multi-branch Chains" },
+        name: { vi: "Đa lĩnh vực", en: "Multi-sector" },
         blurb: {
-          vi: "Một cấu hình dùng chung, dữ liệu và hội thoại tách riêng theo từng chi nhánh.",
-          en: "One shared setup, with data and conversations separated per branch.",
+          vi: "Một nền tảng linh hoạt cho nhiều ngành — cấu hình riêng theo từng bài toán kinh doanh.",
+          en: "One flexible platform across many sectors — configured for each business problem.",
         },
-        icon: "store",
+        icon: "layers",
         featured: false,
       },
     ],

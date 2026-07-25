@@ -6,12 +6,10 @@
 //
 //  ⚠️ GIÁ LÀ NỘI DUNG TẠM. ChatVareno là sản phẩm thật (chatvareno.com) — hãy
 //  thay số dưới đây bằng GIÁ THẬT trước khi lên production, hoặc đồng bộ từ
-//  chatvareno.com. Đây là scaffold giống defaultPlans trong PricingSection và
-//  các placeholder trong site.ts, KHÔNG phải cam kết giá.
+//  chatvareno.com.
 //
 //  ContentAI đang coming-soon (products.ts) ⇒ KHÔNG có bảng giá; tab của nó
-//  hiện trạng thái "Sắp ra mắt". Component tự suy ra điều này từ `status`, nên
-//  ở đây chỉ cần cung cấp tiers cho sản phẩm đã chạy thật.
+//  hiện trạng thái "Sắp ra mắt".
 // ─────────────────────────────────────────────────────────────
 
 import type { Localized } from "./products";
@@ -19,9 +17,14 @@ import { NAV } from "./nav";
 
 interface Tier {
   name: Localized;
-  /** TẠM — thay bằng giá thật. "Miễn phí"/"Liên hệ" cũng hợp lệ. */
+  /** Giá theo tháng (mặc định khi mở trang). */
   price: Localized;
   period: Localized;
+  /** Giá theo năm — nếu thiếu, dùng `price`/`period`. */
+  priceYearly?: Localized;
+  periodYearly?: Localized;
+  /** Badge % chỉ hiện khi chọn Yearly (vd. "20%"). */
+  discountBadge?: Localized;
   desc: Localized;
   features: Localized<readonly string[]>;
   /** Đúng MỘT tier nên đặt true (ô nổi bật). */
@@ -46,6 +49,14 @@ export const SERVICES = {
       vi: "",
       en: "",
     },
+    billing: {
+      monthly: { vi: "Monthly", en: "Monthly" },
+      yearly: { vi: "Yearly", en: "Yearly" },
+      toggleAria: {
+        vi: "Chuyển giá theo tháng hoặc năm",
+        en: "Toggle monthly or yearly pricing",
+      },
+    },
 
     // Trạng thái cho sản phẩm coming-soon (ContentAI).
     comingSoon: {
@@ -64,14 +75,16 @@ export const SERVICES = {
         {
           name: { vi: "Free", en: "Free" },
           price: { vi: "$0", en: "$0" },
-          period: { vi: "vĩnh viễn", en: "forever" },
+          period: { vi: "forever", en: "forever" },
+          priceYearly: { vi: "$0", en: "$0" },
+          periodYearly: { vi: "forever", en: "forever" },
           desc: {
             vi: "Bắt đầu miễn phí với các tính năng thiết yếu.",
             en: "Start free with essential features.",
           },
           features: {
             vi: [
-              "50 credits/tháng",
+              "50 credits/month",
               "1 AI Agent",
               "1.0 MB dữ liệu huấn luyện",
               "5 trang thu thập dữ liệu",
@@ -92,15 +105,18 @@ export const SERVICES = {
         },
         {
           name: { vi: "Standard", en: "Standard" },
-          price: { vi: "319.000 ₫", en: "319,000 ₫" },
-          period: { vi: "/năm", en: "/yearly" },
+          price: { vi: "399.000 đ", en: "399,000 đ" },
+          period: { vi: "/month", en: "/month" },
+          priceYearly: { vi: "319.000 đ", en: "319,000 đ" },
+          periodYearly: { vi: "/yearly", en: "/yearly" },
+          discountBadge: { vi: "20%", en: "20%" },
           desc: {
             vi: "Cho cá nhân và đội nhóm nhỏ.",
             en: "For individuals and small teams.",
           },
           features: {
             vi: [
-              "500 credits/tháng",
+              "500 credits/month",
               "3 AI Agents",
               "10.0 MB dữ liệu huấn luyện",
               "50 trang thu thập dữ liệu",
@@ -125,15 +141,18 @@ export const SERVICES = {
         },
         {
           name: { vi: "Premium", en: "Premium" },
-          price: { vi: "639.000 ₫", en: "639,000 ₫" },
-          period: { vi: "/năm", en: "/yearly" },
+          price: { vi: "799.000 đ", en: "799,000 đ" },
+          period: { vi: "/month", en: "/month" },
+          priceYearly: { vi: "639.000 đ", en: "639,000 đ" },
+          periodYearly: { vi: "/yearly", en: "/yearly" },
+          discountBadge: { vi: "20%", en: "20%" },
           desc: {
             vi: "Gói phổ biến cho doanh nghiệp đang phát triển.",
             en: "The popular plan for growing businesses.",
           },
           features: {
             vi: [
-              "1.500 credits/tháng",
+              "1,500 credits/month",
               "5 AI Agents",
               "20.0 MB dữ liệu huấn luyện",
               "200 trang thu thập dữ liệu",
@@ -163,15 +182,18 @@ export const SERVICES = {
         },
         {
           name: { vi: "Business", en: "Business" },
-          price: { vi: "2.239.000 ₫", en: "2,239,000 ₫" },
-          period: { vi: "/năm", en: "/yearly" },
+          price: { vi: "2.799.000 đ", en: "2,799,000 đ" },
+          period: { vi: "/month", en: "/month" },
+          priceYearly: { vi: "2.239.000 đ", en: "2,239,000 đ" },
+          periodYearly: { vi: "/yearly", en: "/yearly" },
+          discountBadge: { vi: "20%", en: "20%" },
           desc: {
             vi: "Cho doanh nghiệp cần mở rộng quy mô.",
             en: "For businesses scaling their operations.",
           },
           features: {
             vi: [
-              "5.000 credits/tháng",
+              "5,000 credits/month",
               "10 AI Agents",
               "50.0 MB dữ liệu huấn luyện",
               "500 trang thu thập dữ liệu",
@@ -200,8 +222,10 @@ export const SERVICES = {
         },
         {
           name: { vi: "Enterprise", en: "Enterprise" },
-          price: { vi: "Liên hệ báo giá", en: "Contact us" },
+          price: { vi: "Liên hệ báo giá", en: "Contact for quote" },
           period: { vi: "", en: "" },
+          priceYearly: { vi: "Liên hệ báo giá", en: "Contact for quote" },
+          periodYearly: { vi: "", en: "" },
           desc: {
             vi: "Giải pháp tùy chỉnh cho doanh nghiệp của bạn.",
             en: "Customized solutions for your enterprise.",
@@ -209,7 +233,7 @@ export const SERVICES = {
           features: {
             vi: [
               "Số credits không giới hạn",
-              "Tùy chỉnh trợ lý AI",
+              "Tùy chỉnh số trợ lý AI",
               "Tùy chỉnh dữ liệu huấn luyện",
               "Tùy chỉnh số trang thu thập dữ liệu",
               "Tùy chỉnh số thành viên nhóm",
@@ -222,10 +246,10 @@ export const SERVICES = {
             ],
             en: [
               "Unlimited credits",
-              "Customized AI assistants",
-              "Customized training data",
-              "Customized data collection pages",
-              "Customized team member limit",
+              "Custom number of AI assistants",
+              "Custom training data",
+              "Custom data collection pages",
+              "Custom team member limit",
               "Manual handover support",
               "Community support",
               "Support administrator",
