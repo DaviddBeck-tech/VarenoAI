@@ -40,7 +40,7 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
                   height="200%"
                   color-interpolation-filters="sRGB"
                 >
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur" />
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="1.75" result="blur" />
                   <feMerge>
                     <feMergeNode in="blur" />
                     <feMergeNode in="SourceGraphic" />
@@ -175,19 +175,18 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
     opacity: 0;
   }
   .ds-ray--glow {
-    stroke-width: 5;
-    stroke: hsl(221 100% 68% / 0.7);
+    stroke-width: 2.5;
+    stroke: hsl(var(--primary) / 0.55);
   }
   .ds-ray--core {
-    stroke-width: 2;
-    stroke: hsl(221 100% 78%);
+    stroke-width: 1;
+    stroke: hsl(var(--primary));
   }
 
   /* ── Đầu sáng kiểu loader (orb trắng + quầng xanh) ─────── */
   .ds-head {
-    --hue: 221;
-    --border: 7px;
-    --blur: 7px;
+    --border: 5px;
+    --blur: 4px;
     position: absolute;
     top: 0;
     left: 0;
@@ -200,8 +199,8 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
     opacity: 0;
     offset-rotate: 0deg;
     box-shadow:
-      0 0 6px 2px hsl(var(--hue) 100% 70%),
-      0 0 14px 5px hsl(var(--hue) 100% 53% / 0.55);
+      0 0 4px 1px hsl(var(--primary) / 0.7),
+      0 0 8px 3px hsl(var(--primary) / 0.4);
   }
   .ds-head::before {
     content: "";
@@ -236,26 +235,25 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
   .ds-link-beam {
     position: absolute;
     left: 0;
-    top: -1px;
+    top: -0.5px;
     width: 100%;
-    height: 3px;
-    border-radius: 2px;
+    height: 1.5px;
+    border-radius: 1px;
     transform-origin: left center;
     transform: scaleX(0);
     opacity: 0;
     background: linear-gradient(
       90deg,
-      hsl(221 100% 42% / 0.15),
+      hsl(var(--primary) / 0.2),
       hsl(var(--primary)),
-      hsl(221 100% 78%)
+      hsl(var(--primary) / 0.85)
     );
     box-shadow:
-      0 0 8px 1px hsl(221 100% 70% / 0.55),
-      0 0 16px 2px hsl(var(--primary) / 0.35);
+      0 0 4px 1px hsl(var(--primary) / 0.45),
+      0 0 8px 1px hsl(var(--primary) / 0.25);
   }
   .ds-link-head {
-    --hue: 221;
-    --border: 7px;
+    --border: 5px;
     position: absolute;
     top: 0;
     left: 0;
@@ -266,8 +264,8 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
     box-shadow:
-      0 0 6px 2px hsl(var(--hue) 100% 70%),
-      0 0 14px 5px hsl(var(--hue) 100% 53% / 0.55);
+      0 0 4px 1px hsl(var(--primary) / 0.7),
+      0 0 8px 3px hsl(var(--primary) / 0.4);
   }
   .ds-link-head::before {
     content: "";
@@ -275,7 +273,7 @@ const { eyebrow, heading, subheading, steps } = Astro.props;
     inset: calc(var(--border) * -0.5);
     border-radius: 50%;
     background: white;
-    filter: blur(7px);
+    filter: blur(4px);
     z-index: -1;
     opacity: 0.85;
   }
