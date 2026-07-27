@@ -362,11 +362,18 @@ const resourceLinks = [
   /* ── Responsive ─────────────────────── */
   @media (max-width: 768px) {
     .footer-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 2.5rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 1rem;
+      row-gap: 2.5rem;
     }
     .footer-brand {
-      grid-column: span 2;
+      grid-column: 1 / -1;
+    }
+    .footer-col {
+      min-width: 0;
+    }
+    .footer-col-title {
+      margin-bottom: 1rem;
     }
     .footer-bottom {
       flex-direction: column;
@@ -377,11 +384,11 @@ const resourceLinks = [
 
   @media (max-width: 480px) {
     .footer-grid {
-      grid-template-columns: 1fr;
-      gap: 2rem;
+      column-gap: 0.75rem;
     }
-    .footer-brand {
-      grid-column: span 1;
+
+    .footer-link {
+      font-size: 0.8125rem;
     }
   }
 </style>

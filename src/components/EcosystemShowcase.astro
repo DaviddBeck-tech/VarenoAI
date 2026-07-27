@@ -38,6 +38,7 @@ import {
 // vercel({ imageService: true }), khiến /_image trả "500 Invalid endpoint" khi
 // chạy `astro dev`. Import tĩnh vẫn cho src đã băm + width/height thật.
 import chatvarenoShot from "../assets/app-mockup.png";
+import contentaiShot from "../assets/Layout_1.png";
 
 /**
  * Ảnh giao diện theo id sản phẩm. Cố ý KHÔNG nhét vào products.ts: registry là
@@ -49,6 +50,7 @@ import chatvarenoShot from "../assets/app-mockup.png";
  */
 const SHOTS: Record<string, ImageMetadata> = {
   chatvareno: chatvarenoShot,
+  contentai: contentaiShot,
 };
 
 interface Props {
@@ -74,10 +76,6 @@ const products = navProducts();
  * Số lẻ do CSS lo: ô cuối nếu phải đứng một mình thì chiếm cả hàng.
  */
 const cols = products.length === 1 ? 1 : 2;
-
-/** Nhãn trạng thái, `badge` tuỳ ý thắng 'coming-soon' mặc định */
-const badgeOf = (p: (typeof products)[number]) =>
-  p.badge?.[lang] ?? (p.status === "coming-soon" ? t("products.comingSoon") : null);
 ---
 
 <section class="ecs-section">
@@ -96,7 +94,6 @@ const badgeOf = (p: (typeof products)[number]) =>
       {
         products.map((p, i) => {
           const shot = SHOTS[p.id];
-          const badge = badgeOf(p);
           return (
             <li style={`--i:${i}`}>
               {/* Toàn bộ thẻ LÀ nút. Không lồng <button> trong <button>: nút
@@ -122,14 +119,13 @@ const badgeOf = (p: (typeof products)[number]) =>
                       loading="lazy"
                       decoding="async"
                     />
-                  ) : (
+                      ) : (
                     /* Slot CÓ NHÃN, không phải giao diện giả dựng bằng <div> */
                     <span class="ecs-slot">
                       <ProductIcon name={p.icon} size={34} />
                       <span>{t("products.previewSoon")}</span>
                     </span>
                   )}
-                  {badge && <em class="ecs-pill">{badge}</em>}
                 </span>
 
                 <span class="ecs-card-foot">
@@ -154,7 +150,6 @@ const badgeOf = (p: (typeof products)[number]) =>
     {
       products.map((p) => {
         const shot = SHOTS[p.id];
-        const badge = badgeOf(p);
         const highlights = p.highlights?.[lang] ?? [];
         return (
           <dialog
@@ -180,7 +175,6 @@ const badgeOf = (p: (typeof products)[number]) =>
                     <span>{t("products.previewSoon")}</span>
                   </div>
                 )}
-                {badge && <em class="ecs-pill">{badge}</em>}
               </div>
 
               {/* Đầu thẻ nằm NGOÀI vùng cuộn ⇒ nút đóng không bao giờ trôi mất */}
@@ -523,23 +517,6 @@ const badgeOf = (p: (typeof products)[number]) =>
     height: 100%;
     object-fit: cover;
     object-position: center top;
-  }
-
-  .ecs-pill {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    font-style: normal;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: hsl(var(--muted-foreground));
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(6px);
-    border: 1px solid hsl(var(--border) / 0.8);
-    padding: 0.25rem 0.5625rem;
-    border-radius: var(--shape-pill);
   }
 
   .ecs-card-foot {

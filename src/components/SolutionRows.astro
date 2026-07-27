@@ -6,7 +6,12 @@
 //
 // Ảnh giữ TRONG component (không nhét vào config) — giống EcosystemShowcase:
 // config là dữ liệu thuần, asset là của riêng section. Bài toán chưa có ảnh
-// thật (ContentAI sắp ra mắt) → hiện SLOT có nhãn, KHÔNG dựng ảnh giả.
+// thật nào → hiện SLOT có nhãn, KHÔNG dựng ảnh giả.
+//
+// ContentAI dùng CHUNG Layout_1.png với EcosystemShowcase ở trang chủ: cùng
+// một sản phẩm thì phải cùng một hình, người đọc mới nhận ra. Nó vẫn "sắp ra
+// mắt", nên `badge` chuyển lên cạnh tên sản phẩm (xem .sr-badge) thay vì nằm
+// trong slot — có ảnh rồi thì slot không hiện nữa.
 //
 // <img> thay vì <Image>: astro.config bật vercel imageService → /_image trả
 // 500 khi `astro dev`. Import tĩnh vẫn cho src băm + width/height thật.
@@ -16,11 +21,13 @@ import ProductIcon from "./ProductIcon.astro";
 import appMockup from "../assets/app-mockup.png";
 import appDeploy from "../assets/app-deploy.png";
 import appAnalytics from "../assets/app-analytics.png";
+import contentaiShot from "../assets/Layout_1.png";
 
 const SHOTS: Record<string, ImageMetadata> = {
   sales: appMockup,
   support: appDeploy,
   leads: appAnalytics,
+  content: contentaiShot,
 };
 
 interface Row {
@@ -60,9 +67,15 @@ const { eyebrow, heading, subheading, rows } = Astro.props;
           return (
             <article class="sr-row">
               <div class="sr-copy">
-                <span class="sr-tag">
-                  <ProductIcon name={r.icon} size={15} />
-                  {r.product}
+                <span class="sr-tags">
+                  <span class="sr-tag">
+                    <ProductIcon name={r.icon} size={15} />
+                    {r.product}
+                  </span>
+                  {/* Có ảnh thì slot không hiện, nhãn "Sắp ra mắt" phải đứng
+                      đây — nếu không, bài toán chưa chạy thật trông y hệt bài
+                      toán đã chạy. */}
+                  {r.badge && shot && <span class="sr-badge">{r.badge}</span>}
                 </span>
                 <h3 class="sr-title">{r.title}</h3>
                 <p class="sr-problem">{r.problem}</p>
@@ -170,6 +183,12 @@ const { eyebrow, heading, subheading, rows } = Astro.props;
   }
 
   /* ── Cột chữ ───────────────────────────────────────────────── */
+  .sr-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
   .sr-tag {
     display: inline-flex;
     align-items: center;
@@ -183,6 +202,20 @@ const { eyebrow, heading, subheading, rows } = Astro.props;
     border: 1px solid hsl(var(--primary) / 0.2);
     padding: 0.3rem 0.7rem;
     border-radius: 999px;
+  }
+  /* Nhãn "Sắp ra mắt" cạnh tên sản phẩm. CỐ Ý dùng tông muted chứ không phải
+     --primary như .sr-tag: hai viên thuốc xanh sát nhau thì chẳng viên nào
+     được đọc, và nhãn này là trạng thái phụ, không phải tên sản phẩm. */
+  .sr-badge {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.7);
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--shape-pill);
   }
   .sr-title {
     font-family: "Google Sans", sans-serif;

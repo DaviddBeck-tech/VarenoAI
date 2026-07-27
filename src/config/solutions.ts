@@ -7,7 +7,8 @@
 //
 //  Nguyên tắc: KHÔNG bịa số liệu, KHÔNG khẳng định "đã có nhiều khách". Bài
 //  toán nào chưa có sản phẩm chạy thật (ContentAI: coming-soon) thì gắn nhãn
-//  "Sắp ra mắt" và KHÔNG dựng ảnh giao diện giả.
+//  "Sắp ra mắt" và KHÔNG dựng ảnh giao diện giả — chỉ dùng ảnh thật của sản
+//  phẩm (ContentAI dùng chung Layout_1.png với EcosystemShowcase ở trang chủ).
 //
 //  Ảnh nằm trong SolutionRows.astro (map theo `imageKey`), không nhét vào đây:
 //  config là dữ liệu thuần — giống products.ts / EcosystemShowcase.
@@ -147,7 +148,9 @@ export const SOLUTIONS = {
     {
       product: "ContentAI",
       icon: "pen-line",
-      imageKey: null,
+      // Cùng ảnh với thẻ ContentAI ở EcosystemShowcase (trang chủ): một sản
+      // phẩm chỉ nên có một hình trên toàn site.
+      imageKey: "content",
       badge: { vi: "Sắp ra mắt", en: "Coming soon" },
       title: { vi: "Sản xuất nội dung đều đặn", en: "Consistent content production" },
       problem: {
@@ -165,6 +168,10 @@ export const SOLUTIONS = {
           "Optimises for SEO as it writes",
           "Keeps your brand's own voice",
         ],
+      },
+      imageAlt: {
+        vi: "Giao diện soạn thảo nội dung của ContentAI",
+        en: "The ContentAI content editor interface",
       },
     },
   ] as readonly SolutionRow[],

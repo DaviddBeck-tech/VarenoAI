@@ -48,12 +48,6 @@ const menuCols =
       ? 3
       : 4;
 
-// {brand} nằm trong chuỗi i18n để đổi thương hiệu vẫn chỉ sửa src/config/site.ts
-const platformTitle = t("nav.ecosystemTitle").replace(
-  "{brand}",
-  SITE.brandName,
-);
-
 const navItems = [
   { key: "home", label: t("nav.home"), href: translatePath(NAV.home) },
   {
@@ -194,27 +188,6 @@ const navItems = [
                       </li>
                     ))}
                   </ul>
-
-                  {/* Dải chân vào sau thẻ cuối cùng */}
-                  <div class="mega-foot" style={`--i:${item.children.length}`}>
-                    <p class="mega-foot-copy">
-                      <strong>{platformTitle}</strong>
-                      <span>{t("nav.ecosystemBlurb")}</span>
-                    </p>
-                    <a href={item.href} class="mega-foot-link">
-                      {t("nav.servicesAll")}
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="16"
-                        height="16"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                      </svg>
-                    </a>
-                  </div>
                 </div>
               </div>
             </div>
@@ -711,75 +684,6 @@ const navItems = [
       color 0.18s ease;
   }
 
-  /* ── Dải chân panel: thông điệp "một nền tảng" + link xem tất cả ─ */
-  .mega-foot {
-    /* --i = số thẻ ⇒ dải chân luôn vào sau thẻ cuối cùng, kể cả khi
-       thêm sản phẩm mới */
-    --mm-delay: calc(var(--i, 0) * var(--mm-stagger));
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-    padding-top: 0.875rem;
-    border-top: 1px solid hsl(var(--border) / 0.6);
-    opacity: var(--mm);
-    transform: translateY(calc((var(--mm) - 1) * 8px));
-    transition:
-      opacity var(--mm-cfade) var(--mm-ease) var(--mm-delay),
-      transform var(--mm-cslide) var(--mm-ease) var(--mm-delay);
-  }
-
-  .mega-foot-copy {
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    font-size: 0.8125rem;
-  }
-
-  .mega-foot-copy strong {
-    font-family: "Google Sans", sans-serif;
-    font-weight: 600;
-    color: hsl(var(--foreground));
-  }
-
-  .mega-foot-copy span {
-    color: hsl(var(--muted-foreground));
-  }
-
-  .mega-foot-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: hsl(var(--primary));
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .mega-foot-link svg {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: transform 0.18s ease;
-  }
-
-  .mega-foot-link:hover svg {
-    transform: translateX(3px);
-  }
-
-  .mega-foot-link:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 3px;
-    border-radius: 4px;
-  }
-
   .ndi-soon {
     font-style: normal;
     font-size: 0.625rem;
@@ -1016,22 +920,18 @@ const navItems = [
   @media (prefers-reduced-motion: reduce) {
     .mega-panel,
     .mm-card,
-    .mega-foot,
     .mm-card-arrow,
-    .mega-foot-link svg,
     .mobile-group-panel,
     .nav-caret svg,
     .mobile-accordion-btn svg {
       transition: none;
     }
 
-    .mm-card,
-    .mega-foot {
+    .mm-card {
       transform: none;
     }
 
-    .mm-card:hover .mm-card-arrow,
-    .mega-foot-link:hover svg {
+    .mm-card:hover .mm-card-arrow {
       transform: none;
     }
   }

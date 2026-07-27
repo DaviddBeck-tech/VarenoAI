@@ -5,10 +5,11 @@
 // ký + một monogram thương hiệu. Đây là một "họ bố cục" editorial khác hẳn:
 //   · AboutStory  = 2 cột lệch + thẻ sứ mệnh
 //   · ValuesSection = chồng card scroll-stacking
-//   · FounderNote  = MỘT cột thư, căn trái, dấu ngoặc kép lớn trang trí
+//   · FounderNote  = thư + mascot đứng bên cạnh (peek/giữ mép thẻ)
 //
 // Section tự nhận .scroll-animate từ IntersectionObserver ở BaseLayout.
 import { SITE } from "../config/site";
+import mascot9 from "../assets/Veno-mascot-9-Photoroom_preview_rev_1.png";
 
 interface Props {
   eyebrow: string;
@@ -26,20 +27,33 @@ const initial = SITE.brandName.charAt(0).toUpperCase();
 
 <section class="letter">
   <div class="container">
-    <div class="letter-card">
-      <span class="letter-quote" aria-hidden="true">&ldquo;</span>
+    <div class="letter-stage">
+      {/* Mascot đứng bên trái, tay giữ mép thẻ — ảnh đã cắt sẵn theo tư thế peek. */}
+      <img
+        class="letter-mascot"
+        src={mascot9.src}
+        width={mascot9.width}
+        height={mascot9.height}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
 
-      <span class="letter-eyebrow">{eyebrow}</span>
-      <h2 class="letter-heading">{heading}</h2>
+      <div class="letter-card">
+        <span class="letter-quote" aria-hidden="true">&ldquo;</span>
 
-      {paragraphs.map((p) => <p class="letter-p">{p}</p>)}
+        <span class="letter-eyebrow">{eyebrow}</span>
+        <h2 class="letter-heading">{heading}</h2>
 
-      <div class="letter-sign">
-        <span class="letter-monogram" aria-hidden="true">{initial}</span>
-        <span class="letter-sign-meta">
-          <span class="letter-sign-name">{signature}</span>
-          {signatureRole && <span class="letter-sign-role">{signatureRole}</span>}
-        </span>
+        {paragraphs.map((p) => <p class="letter-p">{p}</p>)}
+
+        <div class="letter-sign">
+          <span class="letter-monogram" aria-hidden="true">{initial}</span>
+          <span class="letter-sign-meta">
+            <span class="letter-sign-name">{signature}</span>
+            {signatureRole && <span class="letter-sign-role">{signatureRole}</span>}
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -48,12 +62,34 @@ const initial = SITE.brandName.charAt(0).toUpperCase();
 <style>
   .letter {
     padding: 4rem 0;
+    /* Chừa mép trái để mascot không bị container cắt. */
+    overflow: visible;
+  }
+
+  /* Sân khấu: thẻ thư căn giữa; mascot neo absolute vào mép trái thẻ. */
+  .letter-stage {
+    position: relative;
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+
+  /* Đứng cạnh thân thẻ; translate = chỉnh tay (trái 10rem, lên 20rem). */
+  .letter-mascot {
+    position: absolute;
+    z-index: 2;
+    left: -clamp(5.5rem, 14vw, 9.5rem);
+    bottom: 1.75rem;
+    width: clamp(10rem, 22vw, 14.5rem);
+    height: auto;
+    transform: translate(-7.7rem, -18rem);
+    filter: drop-shadow(0 12px 20px hsl(var(--primary) / 0.18));
+    pointer-events: none;
+    user-select: none;
   }
 
   .letter-card {
     position: relative;
-    max-width: 52rem;
-    margin: 0 auto;
+    z-index: 1;
     padding: clamp(2rem, 4vw, 3.25rem);
     border-radius: var(--shape-card);
     border: 1px solid hsl(var(--border) / 0.7);
@@ -160,7 +196,49 @@ const initial = SITE.brandName.charAt(0).toUpperCase();
     color: hsl(var(--muted-foreground));
   }
 
+  /* Tablet hẹp: thu mascot, vẫn đứng cạnh thẻ. */
+  @media (max-width: 900px) {
+    .letter-stage {
+      /* Đẩy thẻ sang phải một chút để chừa chỗ mascot trong viewport hẹp. */
+      margin-left: clamp(3rem, 10vw, 6rem);
+      margin-right: 0;
+      max-width: calc(52rem - clamp(3rem, 10vw, 6rem));
+    }
+
+    .letter-mascot {
+      left: -clamp(4rem, 12vw, 7rem);
+      bottom: 1.25rem;
+      width: clamp(8rem, 20vw, 11rem);
+      transform: translate(-4rem, -10rem);
+    }
+  }
+
+  /* Mobile: mascot ló từ góc dưới-trái của thẻ, không chiếm chiều ngang. */
   @media (max-width: 560px) {
+    .letter-stage {
+      margin-left: 0;
+      margin-right: 0;
+      max-width: none;
+    }
+
+    .letter-mascot {
+      left: auto;
+      right: 0.25rem;
+      top: 1.5rem;
+      bottom: auto;
+      width: 8.58rem;
+      transform: none;
+    }
+
+    .letter-heading {
+      padding-right: 9rem;
+    }
+
+    .letter-card {
+      /* Chừa chỗ cho mascot đứng bên phải tiêu đề trên màn hình nhỏ. */
+      padding-bottom: 2rem;
+    }
+
     .letter-p {
       max-width: none;
     }

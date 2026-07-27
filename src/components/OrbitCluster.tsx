@@ -29,8 +29,14 @@ interface Props {
    * CSS selector của một phần tử mốc (vd. nút "Liên hệ tư vấn"). Nếu có, thẻ chỉ
    * BẺ SANG PHẢI khi đi xuống NGANG TÂM phần tử này (đo lúc runtime → khớp mọi
    * bố cục/responsive). Không có → dùng mốc mặc định gần đáy cụm.
+   * Bị ghi đè nếu truyền `turnAtViewport`.
    */
   bottomAnchorSelector?: string;
+  /**
+   * Tỉ lệ chiều cao MÀN HÌNH (0–1) nơi thẻ bẻ sang phải. Ví dụ 0.7 = xuống ~70%
+   * viewport rồi mới chạy ngang. Ưu tiên hơn `bottomAnchorSelector`.
+   */
+  turnAtViewport?: number;
   /**
    * `floating`: ảnh là nhân vật/mascot nền trong suốt → BỎ khung thẻ (nền trắng,
    * viền, bóng hộp, cắt bo) để nhân vật "trôi" tự do; dùng drop-shadow theo alpha
@@ -45,6 +51,7 @@ export default function OrbitCluster({
   images,
   speed = 0.02,
   bottomAnchorSelector,
+  turnAtViewport,
   floating = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -78,10 +85,13 @@ export default function OrbitCluster({
       // tiến tới đây → mờ đúng lúc trượt ra khỏi cạnh màn hình (container hẹp hơn
       // nhiều màn hình, nên KHÔNG lấy mép container kẻo mờ giữa chừng).
       rect.vpRight = window.innerWidth - gr.left;
-      // Cạnh dưới = nơi thẻ BẺ sang phải. Mặc định gần đáy; nếu có mốc (nút
-      // "Liên hệ tư vấn") thì canh đúng TÂM nút → thẻ đi xuống tới ngang nút mới rẽ.
+      // Cạnh dưới = nơi thẻ BẺ sang phải.
+      // Ưu tiên turnAtViewport (tỉ lệ chiều cao màn hình); không thì mốc DOM;
+      // không thì gần đáy cụm.
       let by = H * 0.9;
-      if (bottomAnchorSelector) {
+      if (typeof turnAtViewport === "number") {
+        by = window.innerHeight * clamp(turnAtViewport, 0.2, 0.95) - gr.top;
+      } else if (bottomAnchorSelector) {
         const anchor = document.querySelector(bottomAnchorSelector);
         if (anchor) {
           const ar = anchor.getBoundingClientRect();
@@ -151,6 +161,56 @@ export default function OrbitCluster({
       const f = bs > a.s ? (s - a.s) / (bs - a.s) : 0;
       return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
     };
+
+    const mod1 = (v: number) => ((v % 1) + 1) % 1;
+
+    // Hằng số fade — dùng chung cho đo handoff và pose (khớp 1:1).
+    const FADE_IN_Y0 = 0.1; // fadeIn=0 tại y=-H*FADE_IN_Y0
+    const FADE_OUT_XW = 0.22; // fadeOut bắt đầu khi x = vpRight - W*FADE_OUT_XW
+
+    // Đảm bảo đường về nằm ngoài màn hình (không lộ cảnh đi lên).
+    rect.Rx = Math.max(rect.Rx, rect.vpRight + W * 0.55);
+    rect.Ty = Math.min(rect.Ty, -H * 0.45);
+    buildPath();
+
+    // ── 2b. LUÔN ≥2 ẢNH; ảnh thứ 3 vào khi ảnh đầu bắt đầu mờ ───────────
+    // Đo đoạn NHÌN THẤY: từ lúc hiện (sIn) → lúc bắt đầu mờ (sOut).
+    // pitch = nửa đoạn đó → luôn có 2 thẻ trên hành lang; khi thẻ đầu tới sOut,
+    // thẻ cách 2 bước (ảnh thứ 3) vừa tới sIn.
+    const measureFadeAnchors = () => {
+      let sIn = 0;
+      let sOut = 0;
+      let bestIn = Infinity;
+      let bestOut = Infinity;
+      const xFadeStart = rect.vpRight - W * FADE_OUT_XW;
+      const yFadeStart = -H * FADE_IN_Y0;
+      for (let i = 0; i < 800; i++) {
+        const s = i / 800;
+        const { x, y } = pathPoint(s);
+        const inScore = Math.abs(x - rect.Lx) * 1.2 + Math.abs(y - yFadeStart);
+        const onBottom = Math.abs(y - rect.By) < H * 0.12 && x > rect.Lx;
+        const outScore = onBottom
+          ? Math.abs(x - xFadeStart) + Math.abs(y - rect.By) * 0.5
+          : 1e9;
+        if (inScore < bestIn) {
+          bestIn = inScore;
+          sIn = s;
+        }
+        if (outScore < bestOut) {
+          bestOut = outScore;
+          sOut = s;
+        }
+      }
+      // Đoạn nhìn thấy theo chiều chạy (sIn → sOut).
+      const visibleArc = mod1(sOut - sIn);
+      return { sIn, sOut, visibleArc };
+    };
+
+    let anchors = measureFadeAnchors();
+    // Nửa đoạn nhìn thấy: 2 thẻ luôn trên banner; thẻ +2 bước = ảnh thứ 3 lúc đầu mờ.
+    let pitch =
+      anchors.visibleArc > 0.08 ? anchors.visibleArc / 2 : 1 / Math.max(N, 1);
+
     // s của điểm trên path gần con trỏ nhất (điểm "cầm" khi bắt đầu kéo).
     const nearestS = (px: number, py: number) => {
       let bs = 0, bd = Infinity;
@@ -180,15 +240,21 @@ export default function OrbitCluster({
 
     const pose = (s: number, i: number) => {
       const { x, y } = pathPoint(s);
-      // Hiện ra (fade-in) khi đổ xuống từ đỉnh — bắt đầu SỚM hơn: mờ 0 tại y=-0.07H
-      // (trên đỉnh stage một chút), đậm đủ tại y=0.06H → thẻ ló ra cao hơn trước.
-      const fadeIn = clamp((y + H * 0.07) / (H * 0.13), 0, 1);
-      // MỜ DẦN khi trượt ra: chỉ mờ ở đoạn cuối sát mép MÀN HÌNH thật (vpRight),
-      // đạt 0 ngay tại mép → tan dần đúng lúc ra khỏi màn hình (không mờ sớm).
-      const fadeOut = clamp((rect.vpRight - x) / (W * 0.34), 0, 1);
-      const opacity = Math.min(fadeIn, fadeOut);
+      // Chỉ hiện trên hành lang nhìn thấy: cạnh trái (xuống) + cạnh dưới (sang phải
+      // rồi mờ). Đường về (đi LÊN cạnh phải / cạnh trên) luôn opacity 0 — không
+      // lộ cảnh thẻ chạy từ dưới lên.
+      const onLeftRail =
+        Math.abs(x - rect.Lx) < W * 0.14 && y <= rect.By + H * 0.04;
+      const onBottomExit =
+        Math.abs(y - rect.By) < H * 0.1 && x >= rect.Lx - W * 0.02;
+      const inViewCorridor = onLeftRail || onBottomExit;
+
+      const fadeIn = clamp((y + H * FADE_IN_Y0) / (H * FADE_IN_Y0), 0, 1);
+      // Mờ hết khi chạm mép màn hình — biến mất, không còn hiện đoạn đi lên.
+      const fadeOut = clamp((rect.vpRight - x) / (W * FADE_OUT_XW), 0, 1);
+      const opacity = inViewCorridor ? Math.min(fadeIn, fadeOut) : 0;
       // To ở cạnh trái, nhỏ dần khi chạy ra phải.
-      const prog = clamp((x - rect.Lx) / (W - rect.Lx), 0, 1);
+      const prog = clamp((x - rect.Lx) / Math.max(1, rect.vpRight - rect.Lx), 0, 1);
       const scale = MAX_S - (MAX_S - MIN_S) * prog;
       return {
         x,
@@ -201,9 +267,23 @@ export default function OrbitCluster({
     };
 
     // ── 4. TRẠNG THÁI CHUNG ───────────────────────────────────────────────
-    const baseS = cards.map((_, i) => i / N);
-    let phi = 0;
+    // baseS giảm theo i: thẻ 0 đi trước (đầu đoàn); thẻ 2 cách đúng 1 đoạn nhìn
+    // thấy → hiện ở sIn đúng lúc thẻ 0 tới sOut (bắt đầu mờ).
+    const baseS = cards.map((_, i) => mod1(-i * pitch));
+    // Reload: sẵn 2 ảnh (đầu ~ giữa-dưới hành lang, sau ~ phía trên).
+    let phi = mod1(anchors.sIn + anchors.visibleArc * 0.58 - baseS[0]);
     let vel = 0; // vòng/giây (quán tính)
+
+    const resyncSpacing = () => {
+      rect.Rx = Math.max(rect.Rx, rect.vpRight + W * 0.55);
+      rect.Ty = Math.min(rect.Ty, -H * 0.45);
+      buildPath();
+      anchors = measureFadeAnchors();
+      pitch =
+        anchors.visibleArc > 0.08 ? anchors.visibleArc / 2 : 1 / Math.max(N, 1);
+      for (let i = 0; i < N; i++) baseS[i] = mod1(-i * pitch);
+      phi = mod1(anchors.sIn + anchors.visibleArc * 0.58 - baseS[0]);
+    };
 
     const paint = (el: HTMLElement, p: ReturnType<typeof pose>) =>
       gsap.set(el, {
@@ -227,7 +307,7 @@ export default function OrbitCluster({
     document.fonts?.ready.then(() => {
       if (disposed) return;
       computeGeo();
-      buildPath();
+      resyncSpacing();
       render();
     });
 
@@ -297,7 +377,7 @@ export default function OrbitCluster({
     // ── 7. RESPONSIVE ─────────────────────────────────────────────────────
     const ro = new ResizeObserver(() => {
       computeGeo();
-      buildPath();
+      resyncSpacing();
       render();
     });
     ro.observe(container);
@@ -311,7 +391,7 @@ export default function OrbitCluster({
       window.removeEventListener("pointercancel", onUp);
       ro.disconnect();
     };
-  }, [images, speed, bottomAnchorSelector]);
+  }, [images, speed, bottomAnchorSelector, turnAtViewport]);
 
   return (
     <div
@@ -336,6 +416,7 @@ export default function OrbitCluster({
             position: "absolute",
             left: 0,
             top: 0,
+            // Mascot dọc → thẻ hẹp hơn ảnh screenshot ngang cho khỏi quá to.
             // Mascot dọc → thẻ hẹp hơn ảnh screenshot ngang cho khỏi quá to.
             width: floating
               ? "clamp(9rem, 15vw, 13rem)"

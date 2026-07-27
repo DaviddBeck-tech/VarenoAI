@@ -43,6 +43,9 @@ const pricingProducts = navProducts().map((p) => {
           name: ti.name[lang],
           price: ti.price[lang],
           period: ti.period[lang],
+          priceYearly: ti.priceYearly?.[lang] ?? ti.price[lang],
+          periodYearly: ti.periodYearly?.[lang] ?? ti.period[lang],
+          discountBadge: ti.discountBadge?.[lang] ?? null,
           desc: ti.desc[lang],
           features: ti.features[lang].slice(),
           highlighted: ti.highlighted ?? false,
@@ -64,7 +67,7 @@ const pricingProducts = navProducts().map((p) => {
     subtitle="Mỗi sản phẩm giải quyết một bài toán cụ thể. Dùng riêng lẻ, hoặc kết hợp cùng nhau trên một nền tảng."
   />
 
-  <ProductsGrid />
+  <ProductsGrid showStatusBadge={false} />
 
   <ProductPricing
     eyebrow={P.eyebrow[lang]}
@@ -76,7 +79,10 @@ const pricingProducts = navProducts().map((p) => {
     comingSoonDesc={P.comingSoon.desc[lang]}
     comingSoonCta={P.comingSoon.ctaLabel[lang]}
     comingSoonHref={translatePath(P.comingSoon.ctaHref)}
-    popularLabel="Phổ biến"
+    popularLabel="Most Popular"
+    monthlyLabel={P.billing.monthly[lang]}
+    yearlyLabel={P.billing.yearly[lang]}
+    billingToggleAria={P.billing.toggleAria[lang]}
     products={pricingProducts}
   />
 
