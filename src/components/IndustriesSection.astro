@@ -18,10 +18,10 @@ import ProductIcon from "./ProductIcon.astro";
 // Bản -sm 800px: ảnh CHỈ hiển thị ~300px (≤600px @2x) nên dùng ảnh gốc ~1672px
 // khiến GPU thu nhỏ 5–6× rồi XOAY → lấy mẫu bilinear gây RĂNG CƯA + mờ. Bản đúng
 // cỡ (thu ~2×) cho cạnh sắc, ít alias. Ảnh gốc lớn vẫn để hero dùng.
-import shotChat from "../assets/Example-1.jpg";
-import eduShot from "../assets/contruction.png";
-import eduShot2 from "../assets/Untitled-1.png";
-import csEdu from "../assets/Ecomerce-sm.png";
+import cskhShot from "../assets/mascot-cskh-quay-le-tan.png";
+import retailShot from "../assets/mascot-cua-hang-mini.png";
+import marketingShot from "../assets/mascot-marketing-noi-dung.png";
+import teacherShot from "../assets/mascot-thay-giao.png";
 
 interface Industry {
   name: string;
@@ -44,7 +44,7 @@ const { title, titleHighlight, subtitle, industries } = Astro.props;
 //   w  = bề rộng (% của cột)     ml = lệch ngang (%)   r = độ nghiêng
 //   mt = độ ĐÈ lên thẻ trên (rem, chỉ đè nhẹ theo yêu cầu)
 // Điều kiện: w + ml ≤ ~96 để thẻ không tràn ngang.
-// LƯU Ý: mọi thẻ ảnh dùng CHUNG một w (62) + khung 16:9 cố định (xem CSS
+// LƯU Ý: mọi thẻ ảnh dùng CHUNG một w (56) + khung 4:3 cố định (xem CSS
 // .ind-item--image) nên tất cả ảnh LUÔN cùng kích thước; ml/r chỉ đổi vị trí.
 type CollageCard =
   | { kind: "image"; img: ImageMetadata; alt: string; w: number; ml: number; r: number; mt: number }
@@ -54,28 +54,28 @@ type CollageCard =
 const collage: CollageCard[] = [
   {
     kind: "image",
-    img: shotChat,
-    alt: "Giao diện quản trị ChatVareno với khung chat trực tiếp",
-    w: 62, ml: 6, r: -2.5, mt: 0,
+    img: cskhShot,
+    alt: "Mascot AI chăm sóc khách hàng tại quầy lễ tân",
+    w: 56, ml: 8, r: -2.5, mt: 0,
   },
   {
     kind: "image",
-    img: eduShot,
-    alt: "Minh hoạ giáo dục — mũ tốt nghiệp đặt trên cuốn sách",
-    w: 62, ml: 26, r: 3, mt: 2.25,
+    img: retailShot,
+    alt: "Mascot AI hỗ trợ vận hành cửa hàng mini",
+    w: 56, ml: 28, r: 3, mt: 3.5,
   },
   // Ảnh thứ 3 trở đi — CHỈ hiện ở desktop/tablet; mobile ẩn (xem @media ≤640).
   {
     kind: "image",
-    img: eduShot2,
-    alt: "Minh hoạ giáo dục — mũ tốt nghiệp và bút trên cuốn sách",
-    w: 62, ml: 4, r: -2.5, mt: 2.25,
+    img: marketingShot,
+    alt: "Mascot AI hỗ trợ marketing và sáng tạo nội dung",
+    w: 56, ml: 6, r: -2.5, mt: 3.5,
   },
   {
     kind: "image",
-    img: csEdu,
-    alt: "Trợ lý AI tư vấn bán lẻ & TMĐT — hỏi đáp size, tồn kho trên ứng dụng",
-    w: 62, ml: 34, r: 2.5, mt: 2.25,
+    img: teacherShot,
+    alt: "Mascot AI thầy giáo hỗ trợ giáo dục và đào tạo",
+    w: 56, ml: 36, r: 2.5, mt: 3.5,
   },
 ];
 ---
@@ -361,10 +361,10 @@ const collage: CollageCard[] = [
     z-index: 50;
   }
 
-  /* Thẻ ảnh: khung tỉ lệ CỐ ĐỊNH để MỌI ảnh cùng kích thước (rộng var(--w) +
-     cao theo 16:9), bất kể tỉ lệ gốc. object-fit:cover cắt gọn phần thừa. */
+  /* Thẻ ảnh dùng khung cao hơn để mascot được hiển thị đầy đủ, hạn chế cắt mất
+     phần đầu và thân ảnh khi object-fit: cover. */
   .ind-item--image {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 4 / 3;
   }
   .ind-item img {
     display: block;

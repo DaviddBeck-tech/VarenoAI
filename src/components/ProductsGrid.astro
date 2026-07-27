@@ -14,9 +14,10 @@ interface Props {
   badge?: string | null;
   title?: string | null;
   subtitle?: string | null;
+  showStatusBadge?: boolean;
 }
 
-const { badge, title, subtitle } = Astro.props;
+const { badge, title, subtitle, showStatusBadge = true } = Astro.props;
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -51,7 +52,7 @@ const products = navProducts();
 
             <h3 class="pg-name">
               {p.name}
-              {p.status === "coming-soon" && (
+              {showStatusBadge && p.status === "coming-soon" && (
                 <em class="pg-soon">{t("products.comingSoon")}</em>
               )}
             </h3>
